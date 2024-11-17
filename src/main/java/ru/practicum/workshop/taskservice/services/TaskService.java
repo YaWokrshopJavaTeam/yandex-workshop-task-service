@@ -25,11 +25,12 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class TaskService {
+    private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
 
     @Transactional
     public FullTaskDto createTask(int authorId, NewTaskDto newTaskDto) {
-        return TaskMapper.toFullTaskDto(taskRepository.save(TaskMapper.toTask(authorId, newTaskDto)));
+        return taskMapper.toFullTaskDto(taskRepository.save(taskMapper.toTask(authorId, TaskStatus.NEW, newTaskDto)));
     }
 
     @Transactional
@@ -67,12 +68,12 @@ public class TaskService {
             }
             updatingTask.setEventId(updateTaskDto.getEventId());
         }
-        return TaskMapper.toFullTaskDto(taskRepository.save(updatingTask));
+        return taskMapper.toFullTaskDto(taskRepository.save(updatingTask));
     }
 
     @Transactional(readOnly = true)
     public FullTaskDto getTaskById(int taskId) {
-        return TaskMapper.toFullTaskDto(taskRepository.getReferenceById(taskId));
+        return taskMapper.toFullTaskDto(taskRepository.getReferenceById(taskId));
     }
 
     @Transactional(readOnly = true)
@@ -96,7 +97,7 @@ public class TaskService {
         tasks = taskRepository.findByParameters(eventId, assigneeId, authorId, pageable);
         return tasks
                 .stream()
-                .map(TaskMapper::toFullTaskDto)
+                .map(taskMapper::toFullTaskDto)
                 .collect(Collectors.toList());
     }
 

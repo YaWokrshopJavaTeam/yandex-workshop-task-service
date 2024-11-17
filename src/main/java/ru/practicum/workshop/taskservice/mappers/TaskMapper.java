@@ -1,36 +1,18 @@
 package ru.practicum.workshop.taskservice.mappers;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.workshop.taskservice.dto.FullTaskDto;
 import ru.practicum.workshop.taskservice.dto.NewTaskDto;
 import ru.practicum.workshop.taskservice.enums.TaskStatus;
 import ru.practicum.workshop.taskservice.model.Task;
 
-import java.time.LocalDateTime;
+@Mapper(componentModel = "spring")
+public interface TaskMapper {
 
-public class TaskMapper {
-    public static Task toTask(int authorId, NewTaskDto newTaskDto) {
-        return new Task(
-                0,
-                newTaskDto.getDescription() != null ? newTaskDto.getDescription() : "",
-                LocalDateTime.now(),
-                newTaskDto.getDeadline() != null ? newTaskDto.getDeadline() : LocalDateTime.now().plusYears(100),
-                TaskStatus.NEW,
-                newTaskDto.getAssigneeId(),
-                authorId,
-                newTaskDto.getEventId()
-        );
-    }
+    FullTaskDto toFullTaskDto(Task task);
 
-    public static FullTaskDto toFullTaskDto(Task task) {
-        return new FullTaskDto(
-                task.getId(),
-                task.getDescription(),
-                task.getCreatedDateTime(),
-                task.getDeadline(),
-                task.getStatus(),
-                task.getAssigneeId(),
-                task.getAuthorId(),
-                task.getEventId()
-        );
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdDateTime", expression = "java(java.time.LocalDateTime.now())")
+    Task toTask(int authorId, TaskStatus status, NewTaskDto newTaskDto);
 }
