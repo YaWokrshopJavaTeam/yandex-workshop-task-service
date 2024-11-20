@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.workshop.taskservice.enums.TaskStatus;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +16,7 @@ public class FullTaskDto {
     protected String description;
     protected LocalDateTime createdDateTime;
     protected LocalDateTime deadline;
-    protected TaskStatus status;
+    protected String status;
     protected int assigneeId;
     protected int authorId;
     protected int eventId;

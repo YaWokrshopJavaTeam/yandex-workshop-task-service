@@ -5,7 +5,6 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.practicum.workshop.taskservice.dto.FullTaskDto;
 import ru.practicum.workshop.taskservice.dto.NewTaskDto;
 import ru.practicum.workshop.taskservice.dto.UpdateTaskDto;
-import ru.practicum.workshop.taskservice.enums.TaskStatus;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
@@ -33,6 +32,7 @@ class TaskServiceTest {
         int authorId = 1;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
         Assertions.assertEquals(1, fullTaskDto.getId(), "Id сохранённой задачи не соответствует ожидаемому");
+        Assertions.assertEquals(newTaskDto.getDescription(), fullTaskDto.getDescription(), "Id сохранённой задачи не соответствует ожидаемому");
     }
 
     @Test
@@ -46,7 +46,22 @@ class TaskServiceTest {
         FullTaskDto updateFullTaskDto = taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto);
         Assertions.assertEquals(1, updateFullTaskDto.getId(), "Id обновлённой задачи не соответствует ожидаемому");
         Assertions.assertEquals(updateForDeadline, updateFullTaskDto.getDeadline(), "Дедлайн обновлённой задачи не соответствует ожидаемому");
-        Assertions.assertEquals(TaskStatus.IN_PROGRESS, updateFullTaskDto.getStatus(), "Id обновлённой задачи не соответствует ожидаемому");
+        Assertions.assertEquals("IN_PROGRESS", updateFullTaskDto.getStatus(), "Id обновлённой задачи не соответствует ожидаемому");
+    }
+
+    @Test
+    void updateTask_tooShortDescription() {
+        NewTaskDto newTaskDto = new NewTaskDto("Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
+        int authorId = 1;
+        FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
+        int fullTaskDto1Id = fullTaskDto1.getId();
+        LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto("D", updateForDeadline, "IN_PROGRESS", null, null);
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto));
+        Assertions.assertEquals("Описание обновляемой задачи не может быть меньше 10 или больше 2000 символов", exception.getMessage(), "Получаемое " +
+                "исключение не соответствует ожидаемому IllegalArgumentException");
     }
 
     @Test
