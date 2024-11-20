@@ -1,6 +1,7 @@
 package ru.practicum.workshop.taskservice.services;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import ru.practicum.workshop.taskservice.dto.FullTaskDto;
 import ru.practicum.workshop.taskservice.dto.NewTaskDto;
 import ru.practicum.workshop.taskservice.dto.UpdateTaskDto;
@@ -18,8 +19,8 @@ import ru.practicum.workshop.taskservice.searchparams.SearchParameters;
 import java.time.LocalDateTime;
 
 @Transactional
+@ActiveProfiles(value = "test")
 @SpringBootTest(
-        properties = "db.name=test",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
