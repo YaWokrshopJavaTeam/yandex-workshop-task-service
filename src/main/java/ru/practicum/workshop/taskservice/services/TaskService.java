@@ -40,8 +40,8 @@ public class TaskService {
             throw new IllegalArgumentException("Обновлять задачу могут только автор или исполнитель");
         }
         if (updateTaskDto.getDescription() != null) {
-            if (updateTaskDto.getDescription().length() < 10) {
-                throw new IllegalArgumentException("Описание обновляемой задачи не может быть меньше 10 символов");
+            if (updateTaskDto.getDescription().length() < 10 || updateTaskDto.getDescription().length() > 2000) {
+                throw new IllegalArgumentException("Описание обновляемой задачи не может быть меньше 10 или больше 2000 символов");
             }
             updatingTask.setDescription(updateTaskDto.getDescription());
         }

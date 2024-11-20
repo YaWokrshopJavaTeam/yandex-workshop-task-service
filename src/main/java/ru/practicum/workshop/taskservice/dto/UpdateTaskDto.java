@@ -1,6 +1,5 @@
 package ru.practicum.workshop.taskservice.dto;
 
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateTaskDto {
-    @Size(min = 10, max = 2000)
     protected String description;
     protected LocalDateTime deadline;
     protected String status;
