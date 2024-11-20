@@ -28,6 +28,8 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
     @Column(nullable = false)
+    protected String title;
+    @Column(nullable = false)
     protected String description;
     @Column(name = "CREATED", nullable = false)
     protected LocalDateTime createdDateTime;

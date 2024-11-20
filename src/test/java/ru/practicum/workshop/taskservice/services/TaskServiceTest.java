@@ -28,7 +28,7 @@ class TaskServiceTest {
 
     @Test
     void createTask() {
-        NewTaskDto newTaskDto = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
+        NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId = 1;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
         Assertions.assertEquals(1, fullTaskDto.getId(), "Id сохранённой задачи не соответствует ожидаемому");
@@ -37,12 +37,12 @@ class TaskServiceTest {
 
     @Test
     void updateTask() {
-        NewTaskDto newTaskDto = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
+        NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId = 1;
         FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
         int fullTaskDto1Id = fullTaskDto1.getId();
         LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, updateForDeadline, "IN_PROGRESS", null, null);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, null, updateForDeadline, "IN_PROGRESS", null, null);
         FullTaskDto updateFullTaskDto = taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto);
         Assertions.assertEquals(1, updateFullTaskDto.getId(), "Id обновлённой задачи не соответствует ожидаемому");
         Assertions.assertEquals(updateForDeadline, updateFullTaskDto.getDeadline(), "Дедлайн обновлённой задачи не соответствует ожидаемому");
@@ -50,13 +50,28 @@ class TaskServiceTest {
     }
 
     @Test
-    void updateTask_tooShortDescription() {
-        NewTaskDto newTaskDto = new NewTaskDto("Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
+    void updateTask_tooShortTitle() {
+        NewTaskDto newTaskDto = new NewTaskDto("first task", "Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId = 1;
         FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
         int fullTaskDto1Id = fullTaskDto1.getId();
         LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto("D", updateForDeadline, "IN_PROGRESS", null, null);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto("D", "Djvhajid dsihvoisdhuv vodvhjodv vjdvo", updateForDeadline, "IN_PROGRESS", null, null);
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto));
+        Assertions.assertEquals("Заголовок обновляемой задачи не может быть меньше 10 или больше 200 символов", exception.getMessage(), "Получаемое " +
+                "исключение не соответствует ожидаемому IllegalArgumentException");
+    }
+
+    @Test
+    void updateTask_tooShortDescription() {
+        NewTaskDto newTaskDto = new NewTaskDto("first task", "Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
+        int authorId = 1;
+        FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
+        int fullTaskDto1Id = fullTaskDto1.getId();
+        LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto("Dodfijhv ohuhvd", "D", updateForDeadline, "IN_PROGRESS", null, null);
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto));
@@ -66,7 +81,7 @@ class TaskServiceTest {
 
     @Test
     void getTaskById() {
-        NewTaskDto newTaskDto = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
+        NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId = 1;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
         FullTaskDto fullTaskDtoFromDB = taskService.getTaskById(fullTaskDto.getId());
@@ -75,11 +90,11 @@ class TaskServiceTest {
 
     @Test
     void getTasks() {
-        NewTaskDto newTaskDto1 = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
+        NewTaskDto newTaskDto1 = new NewTaskDto("first task1", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
         int authorId1 = 1;
-        NewTaskDto newTaskDto2 = new NewTaskDto("Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
+        NewTaskDto newTaskDto2 = new NewTaskDto("first task2", "Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId2 = 2;
-        NewTaskDto newTaskDto3 = new NewTaskDto("Wsdcljsdhvsd jpihvjfvn ierjvp", LocalDateTime.now().plusMonths(1), 1, 3);
+        NewTaskDto newTaskDto3 = new NewTaskDto("first task3", "Wsdcljsdhvsd jpihvjfvn ierjvp", LocalDateTime.now().plusMonths(1), 1, 3);
         taskService.createTask(authorId1, newTaskDto1);
         taskService.createTask(authorId1, newTaskDto2);
         taskService.createTask(authorId2, newTaskDto3);
@@ -97,9 +112,9 @@ class TaskServiceTest {
 
     @Test
     void deleteTask() {
-        NewTaskDto newTaskDto1 = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
+        NewTaskDto newTaskDto1 = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
         int authorId1 = 1;
-        NewTaskDto newTaskDto2 = new NewTaskDto("Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
+        NewTaskDto newTaskDto2 = new NewTaskDto("first task", "Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
         taskService.createTask(authorId1, newTaskDto1);
         taskService.createTask(authorId1, newTaskDto2);
         PresentationParameters presentationParameters = new PresentationParameters(0, 10);

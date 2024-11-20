@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FullTaskDto {
     protected int id;
+    protected String title;
     protected String description;
     protected LocalDateTime createdDateTime;
     protected LocalDateTime deadline;

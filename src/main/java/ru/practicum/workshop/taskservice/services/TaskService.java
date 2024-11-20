@@ -39,6 +39,12 @@ public class TaskService {
         if (updatingTask.getAuthorId() != userId && updatingTask.getAssigneeId() != userId) {
             throw new IllegalArgumentException("Обновлять задачу могут только автор или исполнитель");
         }
+        if (updateTaskDto.getTitle() != null) {
+            if (updateTaskDto.getTitle().length() < 10 || updateTaskDto.getTitle().length() > 200) {
+                throw new IllegalArgumentException("Заголовок обновляемой задачи не может быть меньше 10 или больше 200 символов");
+            }
+            updatingTask.setTitle(updateTaskDto.getTitle());
+        }
         if (updateTaskDto.getDescription() != null) {
             if (updateTaskDto.getDescription().length() < 10 || updateTaskDto.getDescription().length() > 2000) {
                 throw new IllegalArgumentException("Описание обновляемой задачи не может быть меньше 10 или больше 2000 символов");

@@ -47,8 +47,8 @@ class TaskControllerIntegrationTest {
     @Test
     void createTask() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        NewTaskDto newTaskDto = new NewTaskDto("Dsfsdfs dssvdfbfdbdf dfbdfbdf", deadline, 1, 1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        NewTaskDto newTaskDto = new NewTaskDto("Rtgiogjerigvj", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", deadline, 1, 1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1, "Rtgiogjerigvj", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
         when(taskService.createTask(any(Integer.class), any(NewTaskDto.class))).thenReturn(fullTaskDto);
 
@@ -61,6 +61,8 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.description", is(fullTaskDto.getDescription())));
     }
@@ -68,7 +70,7 @@ class TaskControllerIntegrationTest {
     @Test
     void createTask_whenDescriptionInvalid_thenThrowException() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        NewTaskDto newTaskDto = new NewTaskDto("D", deadline, 1, 1);
+        NewTaskDto newTaskDto = new NewTaskDto("D", "D", deadline, 1, 1);
 
         mockMvc.perform(post("/tasks")
                         .header("X-Sharer-User-Id", 1)
@@ -81,8 +83,8 @@ class TaskControllerIntegrationTest {
 
     @Test
     void updateTask() throws Exception {
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto("Completely updated first task", null, "IN_PROGRESS", null, null);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "Completely updated first task", LocalDateTime.now(), LocalDateTime.now().plusMonths(1), "IN_PROGRESS", 1,1,1);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto("first task", "Completely updated first task", null, "IN_PROGRESS", null, null);
+        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Completely updated first task", LocalDateTime.now(), LocalDateTime.now().plusMonths(1), "IN_PROGRESS", 1,1,1);
 
         when(taskService.updateTask(any(Integer.class), any(Integer.class), any(UpdateTaskDto.class)))
                 .thenReturn(fullTaskDto);
@@ -96,6 +98,8 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.description", is(fullTaskDto.getDescription())))
                 .andExpect(jsonPath("$.status").exists())
@@ -104,7 +108,7 @@ class TaskControllerIntegrationTest {
 
     @Test
     void updateTask_whenTaskIdInvalid_thenThrowException() throws Exception {
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, null, "NO_PROGRESS", null, null);
+        UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, null, null, "NO_PROGRESS", null, null);
 
         mockMvc.perform(patch("/tasks/{taskId}", -1)
                         .header("X-Sharer-User-Id", 1)
@@ -118,7 +122,7 @@ class TaskControllerIntegrationTest {
     @Test
     void getTaskById() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
         when(taskService.getTaskById(any(Integer.class)))
                 .thenReturn(fullTaskDto);
@@ -130,6 +134,8 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.description", is(fullTaskDto.getDescription())));
     }
@@ -166,7 +172,7 @@ class TaskControllerIntegrationTest {
     @Test
     void getTasks() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
         when(taskService.getTasks(any(SearchParameters.class), any(PresentationParameters.class)))
                 .thenReturn(List.of(fullTaskDto));
@@ -178,6 +184,8 @@ class TaskControllerIntegrationTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$[0].description").exists())
                 .andExpect(jsonPath("$[0].description", is(fullTaskDto.getDescription())));
     }
