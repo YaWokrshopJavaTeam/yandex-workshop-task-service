@@ -484,7 +484,7 @@
 			"name": "Обновление задачи",
 			"item": [
 				{
-					"name": "Обновление задачи",
+					"name": "Обновление задачи без обновления статуса",
 					"event": [
 						{
 							"listen": "test",
@@ -499,7 +499,7 @@
 									"    pm.expect(jsonData).to.have.property(\"title\", \"Updated task\");",
 									"    pm.expect(jsonData).to.have.property(\"description\", \"Completely updated first task\");",
 									"    pm.expect(jsonData).to.have.property(\"deadline\", \"2025-02-17T16:00:18.260996\");",
-									"    pm.expect(jsonData).to.have.property(\"status\", \"DONE\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", \"NEW\");",
 									"    pm.expect(jsonData).to.have.property(\"assigneeId\", 3);",
 									"    pm.expect(jsonData).to.have.property(\"eventId\", 5);",
 									"});"
@@ -520,7 +520,64 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Updated task\",\n    \"description\": \"Completely updated first task\",\n    \"deadline\": \"2025-02-17T16:00:18.260996\",\n    \"status\": \"DONE\",\n    \"assigneeId\": 3,\n    \"eventId\": 5\n}",
+							"raw": "{\n    \"title\": \"Updated task\",\n    \"description\": \"Completely updated first task\",\n    \"deadline\": \"2025-02-17T16:00:18.260996\",\n    \"assigneeId\": 3,\n    \"eventId\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи только статуса задачи",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Данные из ответа должны соответствовать переданным для обновления\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"title\", \"Updated task\");",
+									"    pm.expect(jsonData).to.have.property(\"description\", \"Completely updated first task\");",
+									"    pm.expect(jsonData).to.have.property(\"deadline\", \"2025-02-17T16:00:18.260996\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", \"IN_PROGRESS\");",
+									"    pm.expect(jsonData).to.have.property(\"assigneeId\", 3);",
+									"    pm.expect(jsonData).to.have.property(\"eventId\", 5);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"

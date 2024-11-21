@@ -50,36 +50,6 @@ class TaskServiceTest {
     }
 
     @Test
-    void updateTask_tooShortTitle() {
-        NewTaskDto newTaskDto = new NewTaskDto("first task", "Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId = 1;
-        FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
-        int fullTaskDto1Id = fullTaskDto1.getId();
-        LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto("D", "Djvhajid dsihvoisdhuv vodvhjodv vjdvo", updateForDeadline, "IN_PROGRESS", null, null);
-        IllegalArgumentException exception = Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto));
-        Assertions.assertEquals("Заголовок обновляемой задачи не может быть меньше 10 или больше 200 символов", exception.getMessage(), "Получаемое " +
-                "исключение не соответствует ожидаемому IllegalArgumentException");
-    }
-
-    @Test
-    void updateTask_tooShortDescription() {
-        NewTaskDto newTaskDto = new NewTaskDto("first task", "Djgifjbmbfk bmpkbndfpb kdfbfvf", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId = 1;
-        FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
-        int fullTaskDto1Id = fullTaskDto1.getId();
-        LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
-        UpdateTaskDto updateTaskDto = new UpdateTaskDto("Dodfijhv ohuhvd", "D", updateForDeadline, "IN_PROGRESS", null, null);
-        IllegalArgumentException exception = Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto));
-        Assertions.assertEquals("Описание обновляемой задачи не может быть меньше 10 или больше 2000 символов", exception.getMessage(), "Получаемое " +
-                "исключение не соответствует ожидаемому IllegalArgumentException");
-    }
-
-    @Test
     void getTaskById() {
         NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
         int authorId = 1;

@@ -44,7 +44,7 @@ public class TaskController {
     @PatchMapping("/{taskId}")
     public FullTaskDto updateTask(@RequestHeader("X-Sharer-User-Id") Integer userId,
                                   @PathVariable @Positive Integer taskId,
-                                  @RequestBody UpdateTaskDto updateTaskDto) {
+                                  @Valid @RequestBody UpdateTaskDto updateTaskDto) {
         log.info("Запрос на обновление задачи с id={} от пользователя с id={}", taskId, userId);
         return taskService.updateTask(userId, taskId, updateTaskDto);
     }
