@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.dto;
+package ru.practicum.workshop.taskservice.tasks.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,13 +12,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FullTaskDto {
-    protected int id;
+    protected long id;
     protected String title;
     protected String description;
     protected LocalDateTime createdDateTime;
     protected LocalDateTime deadline;
     protected String status;
-    protected int assigneeId;
-    protected int authorId;
-    protected int eventId;
+    protected long assigneeId;
+    protected long authorId;
+    protected long eventId;
 }

@@ -2,9 +2,9 @@ package ru.practicum.workshop.taskservice.services;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import ru.practicum.workshop.taskservice.dto.FullTaskDto;
-import ru.practicum.workshop.taskservice.dto.NewTaskDto;
-import ru.practicum.workshop.taskservice.dto.UpdateTaskDto;
+import ru.practicum.workshop.taskservice.tasks.dto.FullTaskDto;
+import ru.practicum.workshop.taskservice.tasks.dto.NewTaskDto;
+import ru.practicum.workshop.taskservice.tasks.dto.UpdateTaskDto;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
@@ -12,8 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.workshop.taskservice.searchparams.PresentationParameters;
-import ru.practicum.workshop.taskservice.searchparams.SearchParameters;
+import ru.practicum.workshop.taskservice.tasks.searchparams.PresentationParameters;
+import ru.practicum.workshop.taskservice.tasks.searchparams.SearchParameters;
+import ru.practicum.workshop.taskservice.tasks.services.TaskService;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +30,7 @@ class TaskServiceTest {
     @Test
     void createTask() {
         NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId = 1;
+        long authorId = 1L;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
         Assertions.assertEquals(1, fullTaskDto.getId(), "Id сохранённой задачи не соответствует ожидаемому");
         Assertions.assertEquals(newTaskDto.getDescription(), fullTaskDto.getDescription(), "Id сохранённой задачи не соответствует ожидаемому");
@@ -38,9 +39,9 @@ class TaskServiceTest {
     @Test
     void updateTask() {
         NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId = 1;
+        long authorId = 1L;
         FullTaskDto fullTaskDto1 = taskService.createTask(authorId, newTaskDto);
-        int fullTaskDto1Id = fullTaskDto1.getId();
+        long fullTaskDto1Id = fullTaskDto1.getId();
         LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
         UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, null, updateForDeadline, "IN_PROGRESS", null, null);
         FullTaskDto updateFullTaskDto = taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto);
@@ -69,9 +70,9 @@ class TaskServiceTest {
         taskService.createTask(authorId1, newTaskDto2);
         taskService.createTask(authorId2, newTaskDto3);
         PresentationParameters presentationParameters = new PresentationParameters(0, 10);
-        SearchParameters searchParameters1 = new SearchParameters(null, null, 1);
-        SearchParameters searchParameters2 = new SearchParameters(2, 1, null);
-        SearchParameters searchParameters3 = new SearchParameters(null, 1, null);
+        SearchParameters searchParameters1 = new SearchParameters(null, null, 1L);
+        SearchParameters searchParameters2 = new SearchParameters(2L, 1L, null);
+        SearchParameters searchParameters3 = new SearchParameters(null, 1L, null);
         int length1 = taskService.getTasks(searchParameters1, presentationParameters).size();
         int length2 = taskService.getTasks(searchParameters2, presentationParameters).size();
         int length3 = taskService.getTasks(searchParameters3, presentationParameters).size();

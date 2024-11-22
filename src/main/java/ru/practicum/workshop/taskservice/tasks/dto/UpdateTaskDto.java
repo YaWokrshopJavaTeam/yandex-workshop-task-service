@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.dto;
+package ru.practicum.workshop.taskservice.tasks.dto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Positive;
@@ -25,7 +25,7 @@ public class UpdateTaskDto {
     protected LocalDateTime deadline;
     protected String status;
     @Positive(message = "Идентификатор исполнителя не может быть меньше или равен нулю")
-    protected Integer assigneeId;
+    protected Long assigneeId;
     @Positive(message = "Идентификатор события не может быть меньше или равен нулю")
-    protected Integer eventId;
+    protected Long eventId;
 }

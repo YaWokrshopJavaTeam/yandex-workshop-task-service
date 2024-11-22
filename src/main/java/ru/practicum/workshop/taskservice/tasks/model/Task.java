@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.model;
+package ru.practicum.workshop.taskservice.tasks.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.workshop.taskservice.enums.TaskStatus;
+import ru.practicum.workshop.taskservice.tasks.enums.TaskStatus;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class Task {
     @Id
     @Column(name = "TASK_ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected int id;
+    protected long id;
     @Column(nullable = false)
     protected String title;
     @Column(nullable = false)
@@ -39,9 +39,9 @@ public class Task {
     @Enumerated(EnumType.ORDINAL)
     protected TaskStatus status;
     @Column(name = "ASSIGNEE_ID", nullable = false)
-    protected int assigneeId;
+    protected long assigneeId;
     @Column(name = "AUTHOR_ID", nullable = false)
-    protected int authorId;
+    protected long authorId;
     @Column(name = "EVENT_ID", nullable = false)
-    protected int eventId;
+    protected long eventId;
 }

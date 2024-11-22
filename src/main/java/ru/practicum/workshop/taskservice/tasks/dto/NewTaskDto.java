@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.dto;
+package ru.practicum.workshop.taskservice.tasks.dto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +27,7 @@ public class NewTaskDto {
     @Future(message = "Дедлайн создаваемой задачи не может быть в прошлом")
     protected LocalDateTime deadline;
     @Positive(message = "Идентификатор исполнителя не может быть меньше или равен нулю")
-    protected int assigneeId;
+    protected long assigneeId;
     @Positive(message = "Идентификатор события не может быть меньше или равен нулю")
-    protected int eventId;
+    protected long eventId;
 }

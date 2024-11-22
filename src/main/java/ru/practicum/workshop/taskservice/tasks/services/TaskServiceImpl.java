@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.services;
+package ru.practicum.workshop.taskservice.tasks.services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,15 +7,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.workshop.taskservice.dto.FullTaskDto;
-import ru.practicum.workshop.taskservice.dto.NewTaskDto;
-import ru.practicum.workshop.taskservice.dto.UpdateTaskDto;
-import ru.practicum.workshop.taskservice.enums.TaskStatus;
-import ru.practicum.workshop.taskservice.mappers.TaskMapper;
-import ru.practicum.workshop.taskservice.model.Task;
-import ru.practicum.workshop.taskservice.repositories.TaskRepository;
-import ru.practicum.workshop.taskservice.searchparams.PresentationParameters;
-import ru.practicum.workshop.taskservice.searchparams.SearchParameters;
+import ru.practicum.workshop.taskservice.tasks.dto.FullTaskDto;
+import ru.practicum.workshop.taskservice.tasks.dto.NewTaskDto;
+import ru.practicum.workshop.taskservice.tasks.dto.UpdateTaskDto;
+import ru.practicum.workshop.taskservice.tasks.enums.TaskStatus;
+import ru.practicum.workshop.taskservice.tasks.mappers.TaskMapper;
+import ru.practicum.workshop.taskservice.tasks.model.Task;
+import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
+import ru.practicum.workshop.taskservice.tasks.searchparams.PresentationParameters;
+import ru.practicum.workshop.taskservice.tasks.searchparams.SearchParameters;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,13 +29,13 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public FullTaskDto createTask(int authorId, NewTaskDto newTaskDto) {
+    public FullTaskDto createTask(long authorId, NewTaskDto newTaskDto) {
         return taskMapper.toFullTaskDto(taskRepository.save(taskMapper.toTask(authorId, TaskStatus.NEW, newTaskDto)));
     }
 
     @Override
     @Transactional
-    public FullTaskDto updateTask(int userId, int taskId, UpdateTaskDto updateTaskDto) {
+    public FullTaskDto updateTask(long userId, long taskId, UpdateTaskDto updateTaskDto) {
         Task updatingTask = taskRepository.getReferenceById(taskId);
         if (updatingTask.getAuthorId() != userId && updatingTask.getAssigneeId() != userId) {
             throw new IllegalArgumentException("Обновлять задачу могут только автор или исполнитель");
@@ -46,7 +46,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public FullTaskDto getTaskById(int taskId) {
+    public FullTaskDto getTaskById(long taskId) {
         return taskMapper.toFullTaskDto(taskRepository.getReferenceById(taskId));
     }
 
@@ -56,15 +56,15 @@ public class TaskServiceImpl implements TaskService {
                                       PresentationParameters presentationParameters) {
         Pageable pageable = PageRequest.of(presentationParameters.getPage() / presentationParameters.getSize(),
                 presentationParameters.getSize());
-        Integer eventId = null;
+        Long eventId = null;
         if (searchParameters.getEventId() != null) {
             eventId = searchParameters.getEventId();
         }
-        Integer assigneeId = null;
+        Long assigneeId = null;
         if (searchParameters.getAssigneeId() != null) {
             assigneeId = searchParameters.getAssigneeId();
         }
-        Integer authorId = null;
+        Long authorId = null;
         if (searchParameters.getAuthorId() != null) {
             authorId = searchParameters.getAuthorId();
         }
@@ -78,7 +78,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public void deleteTask(int authorId, int taskId) {
+    public void deleteTask(long authorId, long taskId) {
         Task task = taskRepository.getReferenceById(taskId);
         if (task.getAuthorId() != authorId) {
             throw new IllegalArgumentException("Удалить задачу может только её автор.");

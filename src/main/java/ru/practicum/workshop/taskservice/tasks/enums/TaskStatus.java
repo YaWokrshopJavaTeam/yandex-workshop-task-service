@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.enums;
+package ru.practicum.workshop.taskservice.tasks.enums;
 
 import java.util.Optional;
 

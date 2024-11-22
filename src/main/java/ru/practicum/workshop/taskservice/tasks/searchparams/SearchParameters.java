@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.searchparams;
+package ru.practicum.workshop.taskservice.tasks.searchparams;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SearchParameters {
-    protected Integer eventId;
-    protected Integer assigneeId;
-    protected Integer authorId;
+    protected Long eventId;
+    protected Long assigneeId;
+    protected Long authorId;
 }

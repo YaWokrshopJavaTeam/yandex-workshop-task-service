@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.searchparams;
+package ru.practicum.workshop.taskservice.tasks.searchparams;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
