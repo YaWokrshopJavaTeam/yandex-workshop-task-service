@@ -1,23 +1,22 @@
 package ru.practicum.workshop.taskservice.epic.mappers;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 import ru.practicum.workshop.taskservice.epic.dto.EpicDto;
 import ru.practicum.workshop.taskservice.epic.dto.NewEpicDto;
 import ru.practicum.workshop.taskservice.epic.dto.UpdateEpicDto;
 import ru.practicum.workshop.taskservice.epic.model.Epic;
 import ru.practicum.workshop.taskservice.tasks.mappers.TaskMapper;
 
-@Mapper(uses = {TaskMapper.class}, componentModel = "spring")
+import java.util.HashSet;
+
+@Mapper(uses = {TaskMapper.class}, componentModel = "spring", imports = {HashSet.class})
 public interface EpicMapper {
     @Mapping(target = "id", expression = "java(null)")
     Epic toEntity(NewEpicDto dto);
 
+    @Mapping(target = "tasks", defaultExpression = "java(new HashSet<>())")
     EpicDto toDto(Epic epic);
 
-    @Mapping(target = "name", defaultExpression = "java(epic.getName())")
-    @Mapping(target = "ownerId", defaultExpression = "java(epic.getOwnerId())")
-    @Mapping(target = "deadline", defaultExpression = "java(epic.getDeadline())")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Epic updateEpic(@MappingTarget Epic epic, UpdateEpicDto dto);
 }
