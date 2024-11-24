@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.services;
+package ru.practicum.workshop.taskservice.tasks.services;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,7 +32,8 @@ class TaskServiceTest {
         NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
         long authorId = 1L;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
-        Assertions.assertEquals(1, fullTaskDto.getId(), "Id сохранённой задачи не соответствует ожидаемому");
+        Assertions.assertNotNull(fullTaskDto, "Задача не сохранена в базу данных");
+        Assertions.assertEquals(authorId, fullTaskDto.getAuthorId(), "Id автора сохранённой задачи не соответствует ожидаемому");
         Assertions.assertEquals(newTaskDto.getDescription(), fullTaskDto.getDescription(), "Id сохранённой задачи не соответствует ожидаемому");
     }
 
@@ -45,7 +46,7 @@ class TaskServiceTest {
         LocalDateTime updateForDeadline = LocalDateTime.now().plusYears(1);
         UpdateTaskDto updateTaskDto = new UpdateTaskDto(null, null, updateForDeadline, "IN_PROGRESS", null, null);
         FullTaskDto updateFullTaskDto = taskService.updateTask(authorId, fullTaskDto1Id, updateTaskDto);
-        Assertions.assertEquals(1, updateFullTaskDto.getId(), "Id обновлённой задачи не соответствует ожидаемому");
+        Assertions.assertEquals(fullTaskDto1Id, updateFullTaskDto.getId(), "Id обновлённой задачи не соответствует ожидаемому");
         Assertions.assertEquals(updateForDeadline, updateFullTaskDto.getDeadline(), "Дедлайн обновлённой задачи не соответствует ожидаемому");
         Assertions.assertEquals("IN_PROGRESS", updateFullTaskDto.getStatus(), "Id обновлённой задачи не соответствует ожидаемому");
     }
@@ -53,7 +54,7 @@ class TaskServiceTest {
     @Test
     void getTaskById() {
         NewTaskDto newTaskDto = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId = 1;
+        long authorId = 1L;
         FullTaskDto fullTaskDto = taskService.createTask(authorId, newTaskDto);
         FullTaskDto fullTaskDtoFromDB = taskService.getTaskById(fullTaskDto.getId());
         Assertions.assertEquals(fullTaskDto.getDescription(), fullTaskDtoFromDB.getDescription(), "Описание полученной из базы данных задачи не соответствует ожидаемому");
@@ -62,9 +63,9 @@ class TaskServiceTest {
     @Test
     void getTasks() {
         NewTaskDto newTaskDto1 = new NewTaskDto("first task1", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
-        int authorId1 = 1;
+        long authorId1 = 1L;
         NewTaskDto newTaskDto2 = new NewTaskDto("first task2", "Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
-        int authorId2 = 2;
+        long authorId2 = 2L;
         NewTaskDto newTaskDto3 = new NewTaskDto("first task3", "Wsdcljsdhvsd jpihvjfvn ierjvp", LocalDateTime.now().plusMonths(1), 1, 3);
         taskService.createTask(authorId1, newTaskDto1);
         taskService.createTask(authorId1, newTaskDto2);
@@ -84,15 +85,15 @@ class TaskServiceTest {
     @Test
     void deleteTask() {
         NewTaskDto newTaskDto1 = new NewTaskDto("first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now().plusMonths(1), 1, 2);
-        int authorId1 = 1;
+        long authorId1 = 1L;
         NewTaskDto newTaskDto2 = new NewTaskDto("first task", "Esdvsdkvsdk cbdsur kojvdjv", LocalDateTime.now().plusMonths(1), 1, 1);
-        taskService.createTask(authorId1, newTaskDto1);
-        taskService.createTask(authorId1, newTaskDto2);
+        FullTaskDto savedTask1 = taskService.createTask(authorId1, newTaskDto1);
+        FullTaskDto savedTask2 = taskService.createTask(authorId1, newTaskDto2);
         PresentationParameters presentationParameters = new PresentationParameters(0, 10);
         SearchParameters searchParameters = new SearchParameters(null, null, null);
         int length1 = taskService.getTasks(searchParameters, presentationParameters).size();
         Assertions.assertEquals(2, length1, "Количество найденных задач не соответствует ожидаемому");
-        taskService.deleteTask(1,1);
+        taskService.deleteTask(authorId1,savedTask1.getId());
         int length2 = taskService.getTasks(searchParameters, presentationParameters).size();
         Assertions.assertEquals(1, length2, "Количество найденных задач не соответствует ожидаемому");
     }

@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.controllers;
+package ru.practicum.workshop.taskservice.tasks.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,9 +50,9 @@ class TaskControllerIntegrationTest {
     void createTask() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
         NewTaskDto newTaskDto = new NewTaskDto("Rtgiogjerigvj", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", deadline, 1, 1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "Rtgiogjerigvj", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1L, "Rtgiogjerigvj", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
-        when(taskService.createTask(any(Integer.class), any(NewTaskDto.class))).thenReturn(fullTaskDto);
+        when(taskService.createTask(anyLong(), any(NewTaskDto.class))).thenReturn(fullTaskDto);
 
         mockMvc.perform(post("/tasks")
                         .header("X-Sharer-User-Id", 1L)
@@ -61,7 +62,7 @@ class TaskControllerIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Long.class))
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
@@ -85,9 +86,9 @@ class TaskControllerIntegrationTest {
     @Test
     void updateTask() throws Exception {
         UpdateTaskDto updateTaskDto = new UpdateTaskDto("first task", "Completely updated first task", null, "IN_PROGRESS", null, null);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Completely updated first task", LocalDateTime.now(), LocalDateTime.now().plusMonths(1), "IN_PROGRESS", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1L, "first task", "Completely updated first task", LocalDateTime.now(), LocalDateTime.now().plusMonths(1), "IN_PROGRESS", 1,1,1);
 
-        when(taskService.updateTask(any(Integer.class), any(Integer.class), any(UpdateTaskDto.class)))
+        when(taskService.updateTask(anyLong(), anyLong(), any(UpdateTaskDto.class)))
                 .thenReturn(fullTaskDto);
 
         mockMvc.perform(patch("/tasks/{taskId}", 1)
@@ -98,7 +99,7 @@ class TaskControllerIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Long.class))
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
@@ -123,9 +124,9 @@ class TaskControllerIntegrationTest {
     @Test
     void getTaskById() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1L, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
-        when(taskService.getTaskById(any(Integer.class)))
+        when(taskService.getTaskById(anyLong()))
                 .thenReturn(fullTaskDto);
 
         mockMvc.perform(get("/tasks/{taskId}", 1)
@@ -134,7 +135,7 @@ class TaskControllerIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.id", is(fullTaskDto.getId()), Long.class))
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$.description").exists())
@@ -173,7 +174,7 @@ class TaskControllerIntegrationTest {
     @Test
     void getTasks() throws Exception {
         LocalDateTime deadline = LocalDateTime.now().plusMonths(1);
-        FullTaskDto fullTaskDto = new FullTaskDto(1, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
+        FullTaskDto fullTaskDto = new FullTaskDto(1L, "first task", "Dsfsdfs dssvdfbfdbdf dfbdfbdf", LocalDateTime.now(), deadline, "NEW", 1,1,1);
 
         when(taskService.getTasks(any(SearchParameters.class), any(PresentationParameters.class)))
                 .thenReturn(List.of(fullTaskDto));
@@ -184,7 +185,7 @@ class TaskControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].id", is(fullTaskDto.getId()), Integer.class))
+                .andExpect(jsonPath("$[0].id", is(fullTaskDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].title").exists())
                 .andExpect(jsonPath("$[0].title", is(fullTaskDto.getTitle())))
                 .andExpect(jsonPath("$[0].description").exists())
