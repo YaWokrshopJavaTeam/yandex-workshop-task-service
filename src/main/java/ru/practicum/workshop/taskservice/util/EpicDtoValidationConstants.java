@@ -1,4 +1,4 @@
-package ru.practicum.workshop.taskservice.epic.dto;
+package ru.practicum.workshop.taskservice.util;
 
 public final class EpicDtoValidationConstants {
     public static final String NAME_NOT_BLANK_ERROR_MESSAGE = "Epic's name shouldn't be blank";

@@ -5,7 +5,7 @@ import lombok.Value;
 
 import java.time.LocalDateTime;
 
-import static ru.practicum.workshop.taskservice.epic.dto.EpicDtoValidationConstants.*;
+import static ru.practicum.workshop.taskservice.util.EpicDtoValidationConstants.*;
 
 @Value
 public class UpdateEpicDto {
