@@ -27,7 +27,8 @@ public class Epic {
     @Column(name = "EVENT_ID", nullable = false)
     protected long eventId;
     protected LocalDateTime deadline;
-    @OneToMany(mappedBy = "epicId")
+    @OneToMany
+    @JoinColumn(name = "EPIC_ID")
     protected Set<Task> tasks;
 
     @Override
