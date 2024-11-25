@@ -1,0 +1,6358 @@
+{
+	"info": {
+		"_postman_id": "39a4d9ec-34fb-4d6a-aef6-2cd51fd6d5f7",
+		"name": "Task Service Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33433593"
+	},
+	"item": [
+		{
+			"name": "Создание задачи",
+			"item": [
+				{
+					"name": "Создание задачи с корректными данными",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const authorId = pm.collectionVariables.get('authorId');",
+									"const source = JSON.parse(pm.request.body.raw);",
+									"const target = pm.response.json();",
+									"",
+									"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {",
+									"pm.expect(target).to.have.property('id');",
+									"pm.expect(target).to.have.property('title');",
+									"pm.expect(target).to.have.property('description');",
+									"pm.expect(target).to.have.property('createdDateTime');",
+									"pm.expect(target).to.have.property('deadline');",
+									"pm.expect(target).to.have.property('status');",
+									"pm.expect(target).to.have.property('assigneeId');",
+									"pm.expect(target).to.have.property('authorId');",
+									"pm.expect(target).to.have.property('eventId');",
+									"});",
+									"",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+									"    pm.expect(target.id).to.not.be.null;",
+									"    pm.expect(source.title).equal(target.title, 'Заголовок задачи должен соответствовать отправленному в запросе');",
+									"    pm.expect(source.description).equal(target.description, 'Описание должно соответствовать отправленному в запросе');",
+									"    pm.expect(Date.parse(source.deadline)).to.be.above(Date.parse(target.deadline));",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать отправленному в запросе');",
+									"    pm.expect(source.assigneeId).equal(target.assigneeId, 'Id исполнителя должен соответствовать отправленному в запросе');",
+									"    pm.expect(target.createdDateTime).to.not.be.null;",
+									"    pm.expect(target.status).equal('NEW', 'Статус задачи должен соответствовать статусу новой задачи');",
+									"    pm.expect(target.authorId).equal(authorId, 'Id автора должно соответствовать отправленному в запросе');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let task;\r",
+									"    try {\r",
+									"        task = rnd.getNewTask();\r",
+									"        pm.collectionVariables.set('authorId', _.random(1001, 1500));\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(task),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи без передачи id автора в заголовках",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"Rkgegrrguhb dojgpfijvpf iofvjpiev\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи с пустым описанием",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи с пустым заголовком",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Rkgegrrguhb dojgpfijvpf iofvjpiev\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи со слишком коротким описанием",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"R\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи со слишком коротким заголовком",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"F\",\n    \"description\": \"Riogjepijgjiervev oerpgkjroe\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи с дедлайном в прошлом",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"Rkgegrrguhb dojgpfijvpf iofvjpiev\",\n    \"deadline\": \"2020-12-17T16:00:18.260996\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи без указания дедлайна",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"First added task\",\n    \"assigneeId\": 1,\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи без данных исполнителя",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"First added task\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"eventId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание задачи без данных о событии",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"First task\",\n    \"description\": \"First added task\",\n    \"deadline\": \"2024-12-17T16:00:18.260996\",\n    \"assigneeId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Обновление задачи",
+			"item": [
+				{
+					"name": "Создание задачи для обновления",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const target = pm.response.json();",
+									"",
+									"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {",
+									"pm.expect(target).to.have.property('id');",
+									"pm.expect(target).to.have.property('title');",
+									"pm.expect(target).to.have.property('description');",
+									"pm.expect(target).to.have.property('createdDateTime');",
+									"pm.expect(target).to.have.property('deadline');",
+									"pm.expect(target).to.have.property('status');",
+									"pm.expect(target).to.have.property('assigneeId');",
+									"pm.expect(target).to.have.property('authorId');",
+									"pm.expect(target).to.have.property('eventId');",
+									"});",
+									"",
+									"pm.collectionVariables.set('savedTask', target);",
+									"pm.collectionVariables.set('taskId', target.id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let task;\r",
+									"    try {\r",
+									"        task = rnd.getNewTask();\r",
+									"        pm.collectionVariables.set('authorId', _.random(1001, 1500));\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(task),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи без обновления статуса",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const authorId = pm.collectionVariables.get('authorId');",
+									"const savedTask = pm.collectionVariables.get('savedTask');",
+									"const source = JSON.parse(pm.request.body.raw);",
+									"const target = pm.response.json();",
+									"",
+									"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {",
+									"pm.expect(target).to.have.property('id');",
+									"pm.expect(target).to.have.property('title');",
+									"pm.expect(target).to.have.property('description');",
+									"pm.expect(target).to.have.property('createdDateTime');",
+									"pm.expect(target).to.have.property('deadline');",
+									"pm.expect(target).to.have.property('status');",
+									"pm.expect(target).to.have.property('assigneeId');",
+									"pm.expect(target).to.have.property('authorId');",
+									"pm.expect(target).to.have.property('eventId');",
+									"});",
+									"",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+									"    pm.expect(savedTask.id).equal(target.id, 'Id задачи должно соответствовать сохранённому');",
+									"    pm.expect(source.title).equal(target.title, 'Заголовок задачи должен соответствовать отправленному в запросе');",
+									"    pm.expect(source.description).equal(target.description, 'Описание должно соответствовать отправленному в запросе');",
+									"    pm.expect(Date.parse(source.deadline)).to.be.above(Date.parse(target.deadline));",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать отправленному в запросе');",
+									"    pm.expect(source.assigneeId).equal(target.assigneeId, 'Id исполнителя должен соответствовать отправленному в запросе');",
+									"    pm.expect(Date.parse(savedTask.createdDateTime)).equal(Date.parse(target.createdDateTime), 'Время создания должно соответствовать сохранённому ранее');",
+									"    pm.expect(savedTask.status).equal(target.status, 'Статус задачи должен соответствовать сохранённому ранее');",
+									"    pm.expect(target.authorId).equal(authorId, 'Id автора должно соответствовать отправленному в запросе');",
+									"});",
+									"",
+									"pm.collectionVariables.set('savedTask', target);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let updateTask;\r",
+									"    try {\r",
+									"        updateTask = rnd.getUpdateTask(null);\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(updateTask),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи только статуса задачи",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const authorId = pm.collectionVariables.get('authorId');",
+									"const savedTask = pm.collectionVariables.get('savedTask');",
+									"const source = JSON.parse(pm.request.body.raw);",
+									"const target = pm.response.json();",
+									"",
+									"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {",
+									"pm.expect(target).to.have.property('id');",
+									"pm.expect(target).to.have.property('title');",
+									"pm.expect(target).to.have.property('description');",
+									"pm.expect(target).to.have.property('createdDateTime');",
+									"pm.expect(target).to.have.property('deadline');",
+									"pm.expect(target).to.have.property('status');",
+									"pm.expect(target).to.have.property('assigneeId');",
+									"pm.expect(target).to.have.property('authorId');",
+									"pm.expect(target).to.have.property('eventId');",
+									"});",
+									"",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+									"    pm.expect(savedTask.id).equal(target.id, 'Id задачи должно соответствовать сохранённому');",
+									"    pm.expect(savedTask.title).equal(target.title, 'Заголовок задачи должен соответствовать сохранённому');",
+									"    pm.expect(savedTask.description).equal(target.description, 'Описание должно соответствовать сохранённому');",
+									"    pm.expect(Date.parse(savedTask.deadline)).equal(Date.parse(target.deadline), 'Дедлайн задачи должен соответствовать сохранённому');",
+									"    pm.expect(savedTask.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать сохранённому');",
+									"    pm.expect(savedTask.assigneeId).equal(target.assigneeId, 'Id исполнителя должен соответствовать сохранённому');",
+									"    pm.expect(Date.parse(savedTask.createdDateTime)).equal(Date.parse(target.createdDateTime), 'Время создания должно соответствовать сохранённому');",
+									"    pm.expect(source.status).equal(target.status, 'Статус задачи должен бвыть изменён');",
+									"    pm.expect(target.authorId).equal(authorId, 'Id автора должно соответствовать отправленному в запросе');",
+									"});",
+									"",
+									"pm.collectionVariables.set('savedTask', target);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи без указания id автора",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи с некорректным id автора",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "99999999",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи без указания id обновляемой задачи",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи с некорректным id обновляемой задачи",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/99999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"99999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи с описанием менее 10 символов",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Ros\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи с заголовком менее 10 символов",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"R\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи датой окончания в прошлом",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deadline\": \"2020-12-17T16:00:18.260996\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи некорректным значением статуса",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"INCORRECT_STATUS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи некорректным id исполнителя",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"assigneeId\": -1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление задачи некорректным id события",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": -1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Получение задачи",
+			"item": [
+				{
+					"name": "Создание задачи для поиска",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Статус вновь созданной задачи должен быть NEW\", function () {",
+									"    ",
+									"    pm.expect(jsonData).to.have.property(\"status\", \"NEW\");",
+									"});",
+									"",
+									"pm.collectionVariables.set('savedTask', jsonData);",
+									"pm.collectionVariables.set('taskId', jsonData.id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let task;\r",
+									"    try {\r",
+									"        task = rnd.getNewTask();\r",
+									"        task.eventId = _.random(2001, 2500);\r",
+									"        pm.collectionVariables.set('authorId', _.random(1001, 1500));\r",
+									"        pm.collectionVariables.set('eventId', task.eventId);\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(task),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение задачи по id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"",
+									"const source = pm.collectionVariables.get('savedTask');",
+									"const target = pm.response.json();",
+									"",
+									"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {",
+									"pm.expect(target).to.have.property('id');",
+									"pm.expect(target).to.have.property('title');",
+									"pm.expect(target).to.have.property('description');",
+									"pm.expect(target).to.have.property('createdDateTime');",
+									"pm.expect(target).to.have.property('deadline');",
+									"pm.expect(target).to.have.property('status');",
+									"pm.expect(target).to.have.property('assigneeId');",
+									"pm.expect(target).to.have.property('authorId');",
+									"pm.expect(target).to.have.property('eventId');",
+									"});",
+									"",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+									"    pm.expect(source.id).equal(target.id, 'Id задачи должно соответствовать сохранённому');",
+									"    pm.expect(source.title).equal(target.title, 'Заголовок задачи должен соответствовать сохранённому');",
+									"    pm.expect(source.description).equal(target.description, 'Описание должно соответствовать сохранённому');",
+									"    pm.expect(Date.parse(source.deadline)).equal(Date.parse(target.deadline), 'Дедлайн задачи должен соответствовать сохранённому');",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать сохранённому');",
+									"    pm.expect(source.assigneeId).equal(target.assigneeId, 'Id исполнителя должен соответствовать сохранённому');",
+									"    pm.expect(Date.parse(source.createdDateTime)).equal(Date.parse(target.createdDateTime), 'Время создания должно соответствовать сохранённому');",
+									"    pm.expect(source.status).equal(target.status, 'Статус задачи должен должен соответствовать сохранённому');",
+									"    pm.expect(source.authorId).equal(target.authorId, 'Id автора должно соответствовать сохранённому');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение задачи с несуществующим id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/99999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"99999999"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Получение списка задач с фильтрацией",
+			"item": [
+				{
+					"name": "Создание второй задачи для поиска",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.response.to.be.withBody;",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Статус вновь созданной задачи должен быть NEW\", function () {",
+									"    ",
+									"    pm.expect(jsonData).to.have.property(\"status\", \"NEW\");",
+									"});",
+									"",
+									"pm.collectionVariables.set('savedTask2', jsonData);",
+									"pm.collectionVariables.set('taskId2', jsonData.id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let task;\r",
+									"    try {\r",
+									"        task = rnd.getNewTask();\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(task),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение двух задач с фильтром по id автора",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и массив из двух элементов в формате json\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).is.an('array');",
+									"    pm.expect(body).to.have.length=2;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?authorId={{authorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "authorId",
+									"value": "{{authorId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение одной задачи с фильтром по id события",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и массив из двух элементов в формате json\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).is.an('array');",
+									"    pm.expect(body).to.have.length=1;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?eventId={{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "eventId",
+									"value": "{{eventId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение задач с фильтрами с некорректным page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?page=-2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "-2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение задач с фильтрами с некорректным size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?size=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Удаление задач",
+			"item": [
+				{
+					"name": "Удаление задачи не автором",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "99999999",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Удаление несуществующей задачи",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/99999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"99999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Корректное удаление задачи 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "{{authorId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Попытка получения задачи 1 после удаления",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Sharer-User-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								":taskId"
+							],
+							"variable": [
+								{
+									"key": "taskId",
+									"value": "{{taskId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Функциональность, связанная с эпиками",
+			"item": [
+				{
+					"name": "Добавление задач в эпик",
+					"item": [
+						{
+							"name": "Добавление задачи 1 для эпика",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const main = async () => {\r",
+											"    const api = new API(pm);\r",
+											"    const rnd = new RandomUtils();\r",
+											"\r",
+											"    let task;\r",
+											"    try {\r",
+											"        task = rnd.getNewTask();\r",
+											"        pm.collectionVariables.set('eventId', task.eventId);\r",
+											"        pm.collectionVariables.set('authorId', _.random(1001, 1500));\r",
+											"    } catch(err) {\r",
+											"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+											"    }\r",
+											"\r",
+											"    pm.request.body.update({\r",
+											"        mode: 'raw',\r",
+											"        raw: JSON.stringify(task),\r",
+											"        options: { raw: { language: 'json' } }\r",
+											"    });\r",
+											"};\r",
+											"\r",
+											"const interval = setInterval(() => {}, 1000);\r",
+											"\r",
+											"setTimeout(async () => \r",
+											"    {\r",
+											"        try {\r",
+											"            await main();\r",
+											"        } catch (e) {\r",
+											"            console.error(e);\r",
+											"        } finally {\r",
+											"            clearInterval(interval);\r",
+											"        }\r",
+											"    },  \r",
+											"    100 \r",
+											");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+											"    pm.response.to.have.status(201);\r",
+											"    pm.response.to.be.withBody;\r",
+											"    pm.response.to.be.json;\r",
+											"});\r",
+											"\r",
+											"const target = pm.response.json();\r",
+											"const eventId = pm.collectionVariables.get('eventId');\r",
+											"\r",
+											"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {\r",
+											"pm.expect(target).to.have.property('id');\r",
+											"pm.expect(target).to.have.property('title');\r",
+											"pm.expect(target).to.have.property('description');\r",
+											"pm.expect(target).to.have.property('createdDateTime');\r",
+											"pm.expect(target).to.have.property('deadline');\r",
+											"pm.expect(target).to.have.property('status');\r",
+											"pm.expect(target).to.have.property('assigneeId');\r",
+											"pm.expect(target).to.have.property('authorId');\r",
+											"pm.expect(target).to.have.property('eventId');\r",
+											"});\r",
+											"\r",
+											"pm.expect(eventId).equals(target.eventId, 'Id мероприятия должно соответствовать ожидаемому');\r",
+											"\r",
+											"pm.collectionVariables.set('taskId', target.id);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Sharer-User-Id",
+										"value": "{{authorId}}",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Добавление задачи 2 для эпика",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const main = async () => {\r",
+											"    const api = new API(pm);\r",
+											"    const rnd = new RandomUtils();\r",
+											"\r",
+											"    let task;\r",
+											"    try {\r",
+											"        const eventId = pm.collectionVariables.get('eventId');\r",
+											"        task = rnd.getNewTaskWithEventId(eventId);\r",
+											"        task.eventId = eventId;\r",
+											"    } catch(err) {\r",
+											"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+											"    }\r",
+											"\r",
+											"    pm.request.body.update({\r",
+											"        mode: 'raw',\r",
+											"        raw: JSON.stringify(task),\r",
+											"        options: { raw: { language: 'json' } }\r",
+											"    });\r",
+											"};\r",
+											"\r",
+											"const interval = setInterval(() => {}, 1000);\r",
+											"\r",
+											"setTimeout(async () => \r",
+											"    {\r",
+											"        try {\r",
+											"            await main();\r",
+											"        } catch (e) {\r",
+											"            console.error(e);\r",
+											"        } finally {\r",
+											"            clearInterval(interval);\r",
+											"        }\r",
+											"    },  \r",
+											"    100 \r",
+											");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+											"    pm.response.to.have.status(201);\r",
+											"    pm.response.to.be.withBody;\r",
+											"    pm.response.to.be.json;\r",
+											"});\r",
+											"\r",
+											"const target = pm.response.json();\r",
+											"const eventId = pm.collectionVariables.get('eventId');\r",
+											"\r",
+											"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {\r",
+											"pm.expect(target).to.have.property('id');\r",
+											"pm.expect(target).to.have.property('title');\r",
+											"pm.expect(target).to.have.property('description');\r",
+											"pm.expect(target).to.have.property('createdDateTime');\r",
+											"pm.expect(target).to.have.property('deadline');\r",
+											"pm.expect(target).to.have.property('status');\r",
+											"pm.expect(target).to.have.property('assigneeId');\r",
+											"pm.expect(target).to.have.property('authorId');\r",
+											"pm.expect(target).to.have.property('eventId');\r",
+											"});\r",
+											"\r",
+											"pm.expect(eventId).equals(target.eventId, 'Id мероприятия должно соответствовать ожидаемому');\r",
+											"\r",
+											"pm.collectionVariables.set('taskId2', target.id);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Sharer-User-Id",
+										"value": "{{authorId}}",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Добавление задач в эпик",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const main = async () => {\r",
+											"    const api = new API(pm);\r",
+											"    const rnd = new RandomUtils();\r",
+											"\r",
+											"    try {\r",
+											"        let epic = rnd.getNewEpic();\r",
+											"        const eventId = pm.collectionVariables.get('eventId');\r",
+											"        epic.eventId = eventId;\r",
+											"        epic = await api.addEpic(epic);\r",
+											"\r",
+											"        const taskId = pm.collectionVariables.get('taskId');\r",
+											"        const taskId2 = pm.collectionVariables.get('taskId2');\r",
+											"\r",
+											"        pm.collectionVariables.set('response', epic);\r",
+											"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+											"        pm.collectionVariables.set('epicId', epic.id);\r",
+											"        pm.collectionVariables.set('taskIds', [taskId, taskId2]);\r",
+											"    } catch(err) {\r",
+											"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+											"    }\r",
+											"};\r",
+											"\r",
+											"const interval = setInterval(() => {}, 1000);\r",
+											"\r",
+											"setTimeout(async () => \r",
+											"    {\r",
+											"        try {\r",
+											"            await main();\r",
+											"        } catch (e) {\r",
+											"            console.error(e);\r",
+											"        } finally {\r",
+											"            clearInterval(interval);\r",
+											"        }\r",
+											"    },  \r",
+											"    100 \r",
+											");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.response.to.be.withBody;\r",
+											"    pm.response.to.be.json;\r",
+											"});\r",
+											"\r",
+											"const source = pm.collectionVariables.get('response');\r",
+											"const target = pm.response.json();\r",
+											"const taskIds = pm.collectionVariables.get('taskIds');\r",
+											"const tasks = target.tasks;\r",
+											"let currentTasks = 0;\r",
+											"tasks.forEach(function(element){\r",
+											"    if ((element.id == taskIds[0]) || (element.id == taskIds[1])) currentTasks = currentTasks + 1\r",
+											"    });\r",
+											"\r",
+											"pm.test(\"Эпик должен содержать поля: id, name, ownerId, eventId, deadline, tasks\", function () {\r",
+											"pm.expect(target).to.have.property('id');\r",
+											"pm.expect(target).to.have.property('name');\r",
+											"pm.expect(target).to.have.property('ownerId');\r",
+											"pm.expect(target).to.have.property('eventId');\r",
+											"pm.expect(target).to.have.property('deadline');\r",
+											"pm.expect(target).to.have.property('tasks');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Задачи в полученном эпике должны соответствовать ожидаемым\", function () {\r",
+											"    pm.expect(target.tasks).to.not.be.null;\r",
+											"    pm.expect(taskIds.length).equal(tasks.length, 'Количество задач в эпике должно соответствовать количеству переданных id задач');\r",
+											"    pm.expect(taskIds.length).equal(currentTasks, 'Id задач должны соответствовать переданным в запросе id');\r",
+											"});\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Owner-Id",
+										"value": "{{ownerId}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"epics",
+										":epicId"
+									],
+									"query": [
+										{
+											"key": "taskIds",
+											"value": "{{taskIds}}",
+											"description": "id задач, которые добавляют в эпик"
+										}
+									],
+									"variable": [
+										{
+											"key": "epicId",
+											"value": "{{epicId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Validation",
+					"item": [
+						{
+							"name": "Required param in body",
+							"item": [
+								{
+									"name": "Добавление эпика blank name",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.name = ' '.repeat(25);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика null name",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.name = null;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика  null ownerId",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.ownerId = null;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика  null eventId",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.eventId = null;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика null deadline",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.deadline = null;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Body params validation",
+							"item": [
+								{
+									"name": "Добавление эпика name.length > 250",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.name = rnd.getWord(251);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика ownerId negative",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.ownerId = -100;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика eventId negative",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.eventId = -100;\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика deadline in past",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        epic.deadline.add(-2, 'day');\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление эпика deadline present",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    let epic;\r",
+													"    try {\r",
+													"        epic = rnd.getNewEpic();\r",
+													"        let moment = require('moment')\r",
+													"        epic.deadline = moment();\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"\r",
+													"    pm.request.body.update({\r",
+													"        mode: 'raw',\r",
+													"        raw: JSON.stringify(epic),\r",
+													"        options: { raw: { language: 'json' } }\r",
+													"    });\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика name.length > 251",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"\r",
+													"        updateDtoEpic.name = rnd.getWord(251);\r",
+													"        \r",
+													"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+													"        pm.collectionVariables.set('epicId', epic.id);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика ownerId negative",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"\r",
+													"        updateDtoEpic.ownerId = -100;\r",
+													"        \r",
+													"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+													"        pm.collectionVariables.set('epicId', epic.id);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика deadline in past",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"\r",
+													"        updateDtoEpic.deadline.add(-2, 'day');\r",
+													"        \r",
+													"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+													"        pm.collectionVariables.set('epicId', epic.id);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика deadline present",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"\r",
+													"        let moment = require('moment')\r",
+													"        updateDtoEpic.deadline = moment();\r",
+													"        \r",
+													"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+													"        pm.collectionVariables.set('epicId', epic.id);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Request params",
+							"item": [
+								{
+									"name": "Добавление задач в эпик ownerId negative в заголовке",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('ownerId', -100);\r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"        pm.collectionVariables.set('taskIds', [1]);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"query": [
+												{
+													"key": "taskIds",
+													"value": "{{taskIds}}",
+													"description": "id задач, которые добавляют в эпик"
+												}
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление задач в эпик negarive epicId в запросе",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('ownerId', 1);\r",
+													"        pm.collectionVariables.set('epicId', -100);\r",
+													"        pm.collectionVariables.set('taskIds', [1]);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"query": [
+												{
+													"key": "taskIds",
+													"value": "{{taskIds}}",
+													"description": "id задач, которые добавляют в эпик"
+												}
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление задач в эпик отсутствие taskIds в запросе",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('ownerId', 1);\r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Добавление задач в эпик отсутствие ownerId в заголовке",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"        pm.collectionVariables.set('taskIds', [1, 2]);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"query": [
+												{
+													"key": "taskIds",
+													"value": "{{taskIds}}",
+													"description": "id задач, которые добавляют в эпик"
+												}
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика отсутствие ownerId в заголовке",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"        \r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Обновление эпика negative epicId в запросе",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+													"        \r",
+													"        pm.collectionVariables.set('ownerId', 1);\r",
+													"        pm.collectionVariables.set('epicId', -100);\r",
+													"\r",
+													"        pm.request.body.update({\r",
+													"            mode: 'raw',\r",
+													"            raw: updateDtoEpic,\r",
+													"            options: { raw: { language: 'json' } }\r",
+													"        });\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{{request_body}}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Удаление эпика по id без ownerId в заголовке",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Удаление эпика по id ownerId negative в заголовке",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('ownerId', -100);\r",
+													"        pm.collectionVariables.set('epicId', 1);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Удаление эпика по id epicId negative",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('ownerId', 1);\r",
+													"        pm.collectionVariables.set('epicId', -100);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Получение эпика с negative id",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('epicId', -100);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(400);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Misc tests",
+							"item": [
+								{
+									"name": "Добавление задач в эпик задачи с другим eventId",
+									"item": [
+										{
+											"name": "Добавление задач в эпик неверные taskId",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const main = async () => {\r",
+															"    const api = new API(pm);\r",
+															"    const rnd = new RandomUtils();\r",
+															"\r",
+															"    try {\r",
+															"        pm.collectionVariables.set('ownerId', 1);\r",
+															"        pm.collectionVariables.set('epicId', 1);\r",
+															"        pm.collectionVariables.set('taskIds', [-100]);\r",
+															"    } catch(err) {\r",
+															"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+															"    }\r",
+															"};\r",
+															"\r",
+															"const interval = setInterval(() => {}, 1000);\r",
+															"\r",
+															"setTimeout(async () => \r",
+															"    {\r",
+															"        try {\r",
+															"            await main();\r",
+															"        } catch (e) {\r",
+															"            console.error(e);\r",
+															"        } finally {\r",
+															"            clearInterval(interval);\r",
+															"        }\r",
+															"    },  \r",
+															"    100 \r",
+															");"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Ответ должен содержать код статуса 404 и данные в формате json\", function () {\r",
+															"    pm.response.to.have.status(404);\r",
+															"    pm.response.to.be.withBody;\r",
+															"    pm.response.to.be.json;\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "X-Owner-Id",
+														"value": "{{ownerId}}",
+														"type": "text"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"tasks",
+														"epics",
+														":epicId"
+													],
+													"query": [
+														{
+															"key": "taskIds",
+															"value": "{{taskIds}}",
+															"description": "id задач, которые добавляют в эпик"
+														}
+													],
+													"variable": [
+														{
+															"key": "epicId",
+															"value": "{{epicId}}"
+														}
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Добавление задачи 1 для эпика",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const main = async () => {\r",
+															"    const api = new API(pm);\r",
+															"    const rnd = new RandomUtils();\r",
+															"\r",
+															"    let task;\r",
+															"    try {\r",
+															"        task = rnd.getNewTask();\r",
+															"        pm.collectionVariables.set('eventId', task.eventId);\r",
+															"        pm.collectionVariables.set('authorId', _.random(1001, 1500));\r",
+															"    } catch(err) {\r",
+															"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+															"    }\r",
+															"\r",
+															"    pm.request.body.update({\r",
+															"        mode: 'raw',\r",
+															"        raw: JSON.stringify(task),\r",
+															"        options: { raw: { language: 'json' } }\r",
+															"    });\r",
+															"};\r",
+															"\r",
+															"const interval = setInterval(() => {}, 1000);\r",
+															"\r",
+															"setTimeout(async () => \r",
+															"    {\r",
+															"        try {\r",
+															"            await main();\r",
+															"        } catch (e) {\r",
+															"            console.error(e);\r",
+															"        } finally {\r",
+															"            clearInterval(interval);\r",
+															"        }\r",
+															"    },  \r",
+															"    100 \r",
+															");"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+															"    pm.response.to.have.status(201);\r",
+															"    pm.response.to.be.withBody;\r",
+															"    pm.response.to.be.json;\r",
+															"});\r",
+															"\r",
+															"const target = pm.response.json();\r",
+															"const eventId = pm.collectionVariables.get('eventId');\r",
+															"\r",
+															"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {\r",
+															"pm.expect(target).to.have.property('id');\r",
+															"pm.expect(target).to.have.property('title');\r",
+															"pm.expect(target).to.have.property('description');\r",
+															"pm.expect(target).to.have.property('createdDateTime');\r",
+															"pm.expect(target).to.have.property('deadline');\r",
+															"pm.expect(target).to.have.property('status');\r",
+															"pm.expect(target).to.have.property('assigneeId');\r",
+															"pm.expect(target).to.have.property('authorId');\r",
+															"pm.expect(target).to.have.property('eventId');\r",
+															"});\r",
+															"\r",
+															"pm.expect(eventId).equals(target.eventId, 'Id мероприятия должно соответствовать ожидаемому');\r",
+															"\r",
+															"pm.collectionVariables.set('taskId', target.id);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "X-Sharer-User-Id",
+														"value": "{{authorId}}",
+														"type": "text"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/tasks",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"tasks"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Добавление задачи 2 для эпика",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const main = async () => {\r",
+															"    const api = new API(pm);\r",
+															"    const rnd = new RandomUtils();\r",
+															"\r",
+															"    let task;\r",
+															"    try {\r",
+															"        const eventId = pm.collectionVariables.get('eventId');\r",
+															"        task = rnd.getNewTaskWithEventId(eventId);\r",
+															"        task.eventId = eventId;\r",
+															"    } catch(err) {\r",
+															"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+															"    }\r",
+															"\r",
+															"    pm.request.body.update({\r",
+															"        mode: 'raw',\r",
+															"        raw: JSON.stringify(task),\r",
+															"        options: { raw: { language: 'json' } }\r",
+															"    });\r",
+															"};\r",
+															"\r",
+															"const interval = setInterval(() => {}, 1000);\r",
+															"\r",
+															"setTimeout(async () => \r",
+															"    {\r",
+															"        try {\r",
+															"            await main();\r",
+															"        } catch (e) {\r",
+															"            console.error(e);\r",
+															"        } finally {\r",
+															"            clearInterval(interval);\r",
+															"        }\r",
+															"    },  \r",
+															"    100 \r",
+															");"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+															"    pm.response.to.have.status(201);\r",
+															"    pm.response.to.be.withBody;\r",
+															"    pm.response.to.be.json;\r",
+															"});\r",
+															"\r",
+															"const target = pm.response.json();\r",
+															"const eventId = pm.collectionVariables.get('eventId');\r",
+															"\r",
+															"pm.test(\"Задача должна содержать поля: id, title, description, createdDateTime, deadline, status, assigneeId, authorId, eventId\", function () {\r",
+															"pm.expect(target).to.have.property('id');\r",
+															"pm.expect(target).to.have.property('title');\r",
+															"pm.expect(target).to.have.property('description');\r",
+															"pm.expect(target).to.have.property('createdDateTime');\r",
+															"pm.expect(target).to.have.property('deadline');\r",
+															"pm.expect(target).to.have.property('status');\r",
+															"pm.expect(target).to.have.property('assigneeId');\r",
+															"pm.expect(target).to.have.property('authorId');\r",
+															"pm.expect(target).to.have.property('eventId');\r",
+															"});\r",
+															"\r",
+															"pm.expect(eventId).equals(target.eventId, 'Id мероприятия должно соответствовать ожидаемому');\r",
+															"\r",
+															"pm.collectionVariables.set('taskId2', target.id);"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "X-Sharer-User-Id",
+														"value": "{{authorId}}",
+														"type": "text"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/tasks",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"tasks"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Добавление задач в эпик задачи с другим eventId",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const main = async () => {\r",
+															"    const api = new API(pm);\r",
+															"    const rnd = new RandomUtils();\r",
+															"\r",
+															"    try {\r",
+															"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+															"\r",
+															"        const taskId = pm.collectionVariables.get('taskId');\r",
+															"        const taskId2 = pm.collectionVariables.get('taskId2');\r",
+															"\r",
+															"        pm.collectionVariables.set('response', epic);\r",
+															"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+															"        pm.collectionVariables.set('epicId', epic.id);\r",
+															"        pm.collectionVariables.set('taskIds', [taskId, taskId2]);\r",
+															"    } catch(err) {\r",
+															"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+															"    }\r",
+															"};\r",
+															"\r",
+															"const interval = setInterval(() => {}, 1000);\r",
+															"\r",
+															"setTimeout(async () => \r",
+															"    {\r",
+															"        try {\r",
+															"            await main();\r",
+															"        } catch (e) {\r",
+															"            console.error(e);\r",
+															"        } finally {\r",
+															"            clearInterval(interval);\r",
+															"        }\r",
+															"    },  \r",
+															"    100 \r",
+															");"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Ответ должен содержать код статуса 409 и данные в формате json\", function () {\r",
+															"    pm.response.to.have.status(409);\r",
+															"    pm.response.to.be.withBody;\r",
+															"    pm.response.to.be.json;\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "X-Owner-Id",
+														"value": "{{ownerId}}",
+														"type": "text"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"tasks",
+														"epics",
+														":epicId"
+													],
+													"query": [
+														{
+															"key": "taskIds",
+															"value": "{{taskIds}}",
+															"description": "id задач, которые добавляют в эпик"
+														}
+													],
+													"variable": [
+														{
+															"key": "epicId",
+															"value": "{{epicId}}"
+														}
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Добавление задач в эпик не ответственным",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"const main = async () => {\r",
+															"    const api = new API(pm);\r",
+															"    const rnd = new RandomUtils();\r",
+															"\r",
+															"    try {\r",
+															"        let epic = rnd.getNewEpic();\r",
+															"        const eventId = pm.collectionVariables.get('eventId');\r",
+															"        epic.eventId = eventId;\r",
+															"        epic = await api.addEpic(epic);\r",
+															"\r",
+															"        const taskId = pm.collectionVariables.get('taskId');\r",
+															"        const taskId2 = pm.collectionVariables.get('taskId2');\r",
+															"\r",
+															"        pm.collectionVariables.set('response', epic);\r",
+															"        pm.collectionVariables.set('ownerId', _.random(2001, 2500));\r",
+															"        pm.collectionVariables.set('epicId', epic.id);\r",
+															"        pm.collectionVariables.set('taskIds', [taskId, taskId2]);\r",
+															"    } catch(err) {\r",
+															"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+															"    }\r",
+															"};\r",
+															"\r",
+															"const interval = setInterval(() => {}, 1000);\r",
+															"\r",
+															"setTimeout(async () => \r",
+															"    {\r",
+															"        try {\r",
+															"            await main();\r",
+															"        } catch (e) {\r",
+															"            console.error(e);\r",
+															"        } finally {\r",
+															"            clearInterval(interval);\r",
+															"        }\r",
+															"    },  \r",
+															"    100 \r",
+															");"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"pm.test(\"Ответ должен содержать код статуса 403 и данные в формате json\", function () {\r",
+															"    pm.response.to.have.status(403);\r",
+															"    pm.response.to.be.withBody;\r",
+															"    pm.response.to.be.json;\r",
+															"});"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "X-Owner-Id",
+														"value": "{{ownerId}}",
+														"type": "text"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/tasks/epics/:epicId?taskIds={{taskIds}}",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"tasks",
+														"epics",
+														":epicId"
+													],
+													"query": [
+														{
+															"key": "taskIds",
+															"value": "{{taskIds}}",
+															"description": "id задач, которые добавляют в эпик"
+														}
+													],
+													"variable": [
+														{
+															"key": "epicId",
+															"value": "{{epicId}}"
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Удаление эпика по id не ответственным",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        const epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const foundedEpic = await api.findEpic(epic.id);\r",
+													"        pm.collectionVariables.set('response', foundedEpic);\r",
+													"        pm.collectionVariables.set('ownerId', _.random(2001, 2500));\r",
+													"        pm.collectionVariables.set('epicId', epic.id);\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 403\", function () {\r",
+													"    pm.response.to.have.status(403);\r",
+													"});\r",
+													"\r",
+													"let source = pm.collectionVariables.get('response');\r",
+													"\r",
+													"pm.test(\"Эпик должен быть найден до удаления\", function () {\r",
+													"    pm.expect(source).not.to.be.null;\r",
+													"});\r",
+													"\r",
+													"let body\r",
+													"const req = {\r",
+													"                url: \"http://localhost:9090/tasks/epics/\" + pm.collectionVariables.get(\"epicId\"),\r",
+													"                method: \"GET\",\r",
+													"                body: body == null ? \"\" : JSON.stringify(body),\r",
+													"                header: { \"Content-Type\": \"application/json\" },\r",
+													"            };\r",
+													"pm.sendRequest(req, (error, response) => {\r",
+													"    pm.test(\"Эпик должен быть найден после выполнения запроса\", function(){\r",
+													"         pm.expect(response.code).to.eql(200);\r",
+													"    });\r",
+													"})"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Удаление эпика с неправильным id",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        const epic = await api.addEpic(rnd.getNewEpic());\r",
+													"        const foundedEpic = await api.findEpic(epic.id);\r",
+													"        pm.collectionVariables.set('response', foundedEpic);\r",
+													"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+													"        pm.collectionVariables.set('epicId',  _.random(2001, 2500));\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 404\", function () {\r",
+													"    pm.response.to.have.status(404);\r",
+													"});\r",
+													"\r",
+													"let source = pm.collectionVariables.get('response');\r",
+													"\r",
+													"pm.test(\"Эпик должен быть найден до удаления\", function () {\r",
+													"    pm.expect(source).not.to.be.null;\r",
+													"});\r",
+													"\r",
+													"let body\r",
+													"const req = {\r",
+													"                url: \"http://localhost:9090/tasks/epics/\" + source.id,\r",
+													"                method: \"GET\",\r",
+													"                body: body == null ? \"\" : JSON.stringify(body),\r",
+													"                header: { \"Content-Type\": \"application/json\" },\r",
+													"            };\r",
+													"pm.sendRequest(req, (error, response) => {\r",
+													"    pm.test(\"Эпик должен быть найден после выполнения запроса\", function(){\r",
+													"         pm.expect(response.code).to.eql(200);\r",
+													"    });\r",
+													"})"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "X-Owner-Id",
+												"value": "{{ownerId}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Получение эпика с неправильным id",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"const main = async () => {\r",
+													"    const api = new API(pm);\r",
+													"    const rnd = new RandomUtils();\r",
+													"\r",
+													"    try {\r",
+													"        pm.collectionVariables.set('epicId',_.random(2001, 2500));\r",
+													"    } catch(err) {\r",
+													"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+													"    }\r",
+													"};\r",
+													"\r",
+													"const interval = setInterval(() => {}, 1000);\r",
+													"\r",
+													"setTimeout(async () => \r",
+													"    {\r",
+													"        try {\r",
+													"            // выполняем наш скрипт\r",
+													"            await main();\r",
+													"        } catch (e) {\r",
+													"            console.error(e);\r",
+													"        } finally {\r",
+													"            clearInterval(interval);\r",
+													"        }\r",
+													"    },  \r",
+													"    100 \r",
+													");"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Ответ должен содержать код статуса 404 и данные в формате json\", function () {\r",
+													"    pm.response.to.have.status(404);\r",
+													"    pm.response.to.be.withBody;\r",
+													"    pm.response.to.be.json;\r",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tasks/epics/:epicId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tasks",
+												"epics",
+												":epicId"
+											],
+											"variable": [
+												{
+													"key": "epicId",
+													"value": "{{epicId}}"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Добавление эпика",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    let epic;\r",
+									"    try {\r",
+									"        epic = rnd.getNewEpic();\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"\r",
+									"    pm.request.body.update({\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify(epic),\r",
+									"        options: { raw: { language: 'json' } }\r",
+									"    });\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"const source = JSON.parse(pm.request.body.raw);\r",
+									"const target = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Эпик должен содержать поля: id, name, ownerId, eventId, deadline, tasks\", function () {\r",
+									"pm.expect(target).to.have.property('id');\r",
+									"pm.expect(target).to.have.property('name');\r",
+									"pm.expect(target).to.have.property('ownerId');\r",
+									"pm.expect(target).to.have.property('eventId');\r",
+									"pm.expect(target).to.have.property('deadline');\r",
+									"pm.expect(target).to.have.property('tasks');\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+									"    pm.expect(target.id).to.not.be.null;\r",
+									"    pm.expect(source.name).equal(target.name, 'Название эпика должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(source.ownerId).equal(target.ownerId, 'Id ответственного должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(Date.parse(source.deadline)).to.be.above(Date.parse(target.deadline));\r",
+									"    pm.expect(target.tasks).to.not.be.null;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/epics",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"epics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление эпика",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    try {\r",
+									"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+									"        const updateDtoEpic = rnd.getUpdateEpic();\r",
+									"        let updatedEpic = rnd.getNewEpic();\r",
+									"        \r",
+									"        updatedEpic.name = updateDtoEpic.name;\r",
+									"        updatedEpic.ownerId = updateDtoEpic.ownerId;\r",
+									"        updatedEpic.eventId = epic.eventId;\r",
+									"        updatedEpic.deadline = updateDtoEpic.deadline;\r",
+									"        updatedEpic.tasks = epic.tasks;\r",
+									"\r",
+									"        pm.collectionVariables.set('response', updatedEpic);\r",
+									"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+									"        pm.collectionVariables.set('epicId', epic.id);\r",
+									"\r",
+									"        pm.request.body.update({\r",
+									"            mode: 'raw',\r",
+									"            raw: updateDtoEpic,\r",
+									"            options: { raw: { language: 'json' } }\r",
+									"        });\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            // выполняем наш скрипт\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"const epicId = pm.collectionVariables.get('epicId');\r",
+									"const source = pm.collectionVariables.get('response');\r",
+									"const target = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Эпик должен содержать поля: id, name, ownerId, eventId, deadline, tasks\", function () {\r",
+									"pm.expect(target).to.have.property('id');\r",
+									"pm.expect(target).to.have.property('name');\r",
+									"pm.expect(target).to.have.property('ownerId');\r",
+									"pm.expect(target).to.have.property('eventId');\r",
+									"pm.expect(target).to.have.property('deadline');\r",
+									"pm.expect(target).to.have.property('tasks');\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+									"    pm.expect(epicId).equals(target.id, 'Id эпика должно соответствовать изменяемому эпику');\r",
+									"    pm.expect(source.name).equal(target.name, 'Название эпика должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(source.ownerId).equal(target.ownerId, 'Id ответственного должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать сохранённому ранее');\r",
+									"    pm.expect(Date.parse(source.deadline)).to.be.above(Date.parse(target.deadline));\r",
+									"    pm.expect(target.tasks).equal(target.tasks, 'Список задач должен соответствовать сохранённому ранее');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Owner-Id",
+								"value": "{{ownerId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/epics/:epicId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"epics",
+								":epicId"
+							],
+							"variable": [
+								{
+									"key": "epicId",
+									"value": "{{epicId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение эпика по id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    try {\r",
+									"        let epic = await api.addEpic(rnd.getNewEpic());\r",
+									"        pm.collectionVariables.set('response', epic);\r",
+									"        pm.collectionVariables.set('epicId', epic.id);\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            // выполняем наш скрипт\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+									"    pm.response.to.be.ok;    \r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"const source = pm.collectionVariables.get('response');\r",
+									"const target = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Эпик должен содержать поля: id, name, ownerId, eventId, deadline, tasks\", function () {\r",
+									"pm.expect(target).to.have.property('id');\r",
+									"pm.expect(target).to.have.property('name');\r",
+									"pm.expect(target).to.have.property('ownerId');\r",
+									"pm.expect(target).to.have.property('eventId');\r",
+									"pm.expect(target).to.have.property('deadline');\r",
+									"pm.expect(target).to.have.property('tasks');\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+									"    pm.expect(source.id).equals(target.id, 'Id отзыва должно соответствовать отправленному в запросе');\r",
+									"    pm.expect(source.name).equal(target.name, 'Название эпика должно соответствовать искомому эпику');\r",
+									"    pm.expect(source.ownerId).equal(target.ownerId, 'Id ответственного должно соответствовать искомому эпику');\r",
+									"    pm.expect(source.eventId).equal(target.eventId, 'Id мероприятия должно соответствовать искомому эпику');\r",
+									"    pm.expect(Date.parse(source.deadline)).equal(Date.parse(target.deadline), 'Дедлайн эпика должен соответствовать искомому эпику');\r",
+									"    pm.expect(target.tasks).equal(target.tasks, 'Список задач должен соответствовать искомому эпику');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/epics/:epicId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"epics",
+								":epicId"
+							],
+							"variable": [
+								{
+									"key": "epicId",
+									"value": "{{epicId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Удаление эпика по id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    try {\r",
+									"        const epic = await api.addEpic(rnd.getNewEpic());\r",
+									"        const foundedEpic = await api.findEpic(epic.id);\r",
+									"        pm.collectionVariables.set('response', foundedEpic);\r",
+									"        pm.collectionVariables.set('ownerId', epic.ownerId);\r",
+									"        pm.collectionVariables.set('epicId', epic.id);\r",
+									"    } catch(err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"\r",
+									"setTimeout(async () => \r",
+									"    {\r",
+									"        try {\r",
+									"            // выполняем наш скрипт\r",
+									"            await main();\r",
+									"        } catch (e) {\r",
+									"            console.error(e);\r",
+									"        } finally {\r",
+									"            clearInterval(interval);\r",
+									"        }\r",
+									"    },  \r",
+									"    100 \r",
+									");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ответ должен содержать код статуса 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});\r",
+									"\r",
+									"let source = pm.collectionVariables.get('response');\r",
+									"\r",
+									"pm.test(\"Эпик должен быть найден до удаления\", function () {\r",
+									"    pm.expect(source).not.to.be.null;\r",
+									"});\r",
+									"\r",
+									"let body\r",
+									"const req = {\r",
+									"                url: \"http://localhost:9090/tasks/epics/\" + pm.collectionVariables.get(\"epicId\"),\r",
+									"                method: \"GET\",\r",
+									"                body: body == null ? \"\" : JSON.stringify(body),\r",
+									"                header: { \"Content-Type\": \"application/json\" },\r",
+									"            };\r",
+									"pm.sendRequest(req, (error, response) => {\r",
+									"    pm.test(\"Эпик должен быть удален после выполнения запроса\", function(){\r",
+									"         pm.expect(response.code).to.eql(404);\r",
+									"    });\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Owner-Id",
+								"value": "{{ownerId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/epics/:epicId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"epics",
+								":epicId"
+							],
+							"variable": [
+								{
+									"key": "epicId",
+									"value": "{{epicId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"API = class {\r",
+					"    constructor(postman, verbose = false, baseUrl = \"http://localhost:9090\") {\r",
+					"        this.baseUrl = baseUrl;\r",
+					"        this.pm = postman;\r",
+					"        this._verbose = verbose;\r",
+					"    }\r",
+					"\r",
+					"    async addEpic(epic, verbose=null) {\r",
+					"        return this.post(\"/tasks/epics\", epic, \"Ошибка при добавлении нового эпика: \", verbose);\r",
+					"    }\r",
+					"\r",
+					"    async findTask(taskId, verbose=null) {\r",
+					"        return this.get('/tasks/' + taskId, null, \"Ошибка при поиске задачи по id\", verbose);\r",
+					"    }\r",
+					"\r",
+					"    async findEpic(epicId, verbose=null) {\r",
+					"        return this.get('/tasks/epics/' + epicId, null, \"Ошибка при поиске эпика по id\", verbose);\r",
+					"    }\r",
+					"\r",
+					"    async post(path, body, errorText = \"Ошибка при выполнении post-запроса: \", verbose=null) {\r",
+					"        return this.sendRequest(\"POST\", path, body, errorText, verbose);\r",
+					"    }\r",
+					"\r",
+					"    async get(path, body = null, errorText = \"Ошибка при выполнении get-запроса: \", verbose=null) {\r",
+					"        return this.sendRequest(\"GET\", path, body, errorText, verbose);\r",
+					"    }\r",
+					"\r",
+					"    async sendRequest(method, path, body=null, errorText = \"Ошибка при выполнении запроса: \", verbose=null) {\r",
+					"        return new Promise((resolve, reject) => {\r",
+					"            verbose = verbose == null ? this._verbose : verbose;\r",
+					"            const request = {\r",
+					"                url: this.baseUrl + path,\r",
+					"                method: method,\r",
+					"                body: body == null ? \"\" : JSON.stringify(body),\r",
+					"                header: { \"Content-Type\": \"application/json\" },\r",
+					"            };\r",
+					"            if(verbose) {\r",
+					"                console.log(\"Отправляю запрос: \", request);\r",
+					"            }\r",
+					"\r",
+					"            try {\r",
+					"                this.pm.sendRequest(request, (error, response) => {\r",
+					"                    if(error || (response.code >= 400 && response.code <= 599)) {\r",
+					"                        let err = error ? error : JSON.stringify(response.json());\r",
+					"                        console.error(\"При выполнении запроса к серверу возникла ошика.\\n\", err,\r",
+					"                             \"\\nДля отладки проблемы повторите такой же запрос к вашей программе \" + \r",
+					"                             \"на локальном компьютере. Данные запроса:\\n\", JSON.stringify(request));\r",
+					"\r",
+					"                        reject(new Error(errorText + err));\r",
+					"                    }\r",
+					"                    if(verbose) {\r",
+					"                        console.log(\"Результат обработки запроса: код состояния - \", response.code, \", тело: \", response.json());\r",
+					"                    }\r",
+					"                    if (response.stream.length === 0){\r",
+					"                        reject(new Error('Отправлено пустое тело ответа'))\r",
+					"                    }else{\r",
+					"                        resolve(response.json());\r",
+					"                    }\r",
+					"                });\r",
+					"                \r",
+					"            } catch(err) {\r",
+					"                if(verbose) {\r",
+					"                    console.error(errorText, err);\r",
+					"                }\r",
+					"                return Promise.reject(err);\r",
+					"            }\r",
+					"        });\r",
+					"    }\r",
+					"};\r",
+					"\r",
+					"RandomUtils = class {\r",
+					"    constructor() {}\r",
+					"\r",
+					"    getNewTask() {\r",
+					"        return {\r",
+					"            title: this.getWord(200).slice(10, 200),\r",
+					"            description: this.getWord(200).slice(10, 2000),\r",
+					"            deadline: this.getFutureDateTime(),\r",
+					"            assigneeId: _.random(1, 1000),\r",
+					"            eventId: _.random(1, 1000)\r",
+					"        };\r",
+					"    }\r",
+					"\r",
+					"    getNewTaskWithEventId(eventId) {\r",
+					"        return {\r",
+					"            title: this.getWord(200).slice(10, 200),\r",
+					"            description: this.getWord(200).slice(10, 2000),\r",
+					"            deadline: this.getFutureDateTime(),\r",
+					"            assigneeId: _.random(1, 1000),\r",
+					"            eventId: eventId\r",
+					"        };\r",
+					"    }\r",
+					"\r",
+					"    getUpdateTask(status) {\r",
+					"        return {\r",
+					"            title: this.getWord(200).slice(10, 200),\r",
+					"            description: this.getWord(200).slice(10, 2000),\r",
+					"            status: status,\r",
+					"            deadline: this.getFutureDateTime(),\r",
+					"            assigneeId: _.random(1501, 2000),\r",
+					"            eventId: _.random(1501, 2000)\r",
+					"        };\r",
+					"    }\r",
+					"\r",
+					"    getNewEpic() {\r",
+					"        return {\r",
+					"            name: this.getWord(250).slice(2, 250),\r",
+					"            ownerId: _.random(1, 1000),\r",
+					"            eventId: _.random(1, 1000),\r",
+					"            deadline: this.getFutureDateTime()\r",
+					"        };\r",
+					"    }\r",
+					"\r",
+					"    getUpdateEpic() {\r",
+					"        return {\r",
+					"            name: this.getWord(250).slice(2, 250),\r",
+					"            ownerId: _.random(1, 1000),\r",
+					"            deadline: this.getFutureDateTime().add(1, 'day')\r",
+					"        };\r",
+					"    }\r",
+					"\r",
+					"    getFutureDateTime(hourShift = 10) {\r",
+					"        let moment = require('moment');\r",
+					"\r",
+					"        let m = moment();\r",
+					"        m.add(hourShift, 'hour');\r",
+					"\r",
+					"        return m;\r",
+					"    }\r",
+					"\r",
+					"    getWord(length = 1) {\r",
+					"        let result = '';\r",
+					"        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+					"        const charactersLength = characters.length;\r",
+					"        let counter = 0;\r",
+					"        while (counter < length) {\r",
+					"            result += characters.charAt(Math.floor(Math.random() * charactersLength));\r",
+					"            counter += 1;\r",
+					"        }\r",
+					"        return result;\r",
+					"    }\r",
+					"};"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:9090",
+			"type": "string"
+		},
+		{
+			"key": "requestBody",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "taskId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "taskId2",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "epicId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "authorId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "ownerId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "response",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "eventId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "taskCount",
+			"value": "0",
+			"type": "string"
+		},
+		{
+			"key": "savedEpic",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "taskIds",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "savedTask",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "savedTask2",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
