@@ -9,7 +9,7 @@ import ru.practicum.workshop.taskservice.tasks.mappers.TaskMapper;
 
 import java.util.HashSet;
 
-@Mapper(uses = {TaskMapper.class}, componentModel = "spring", imports = {HashSet.class})
+@Mapper(uses = {TaskMapper.class}, componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = {HashSet.class})
 public interface EpicMapper {
     @Mapping(target = "id", expression = "java(null)")
     Epic toEntity(NewEpicDto dto);
