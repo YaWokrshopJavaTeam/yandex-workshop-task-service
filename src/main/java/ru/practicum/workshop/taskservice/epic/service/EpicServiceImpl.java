@@ -16,10 +16,10 @@ import ru.practicum.workshop.taskservice.exceptions.ForbiddenException;
 import ru.practicum.workshop.taskservice.tasks.model.Task;
 import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.practicum.workshop.taskservice.util.ErrorMessageConstants.*;
 
@@ -54,21 +54,14 @@ public class EpicServiceImpl implements EpicService {
 
     private void checkExistenceTasks(List<Task> tasks, Set<Long> taskIds) {
         if (tasks.size() < taskIds.size()) {
-            List<Long> gotTasks = tasks.stream().map(Task::getId).toList();
-            List<Long> notFoundTasks = taskIds.stream()
-                    .filter((taskId) -> !gotTasks.contains(taskId))
-                    .toList();
-            throw new EntityNotFoundException(getNotFoundAddingTasks(notFoundTasks));
+            Set<Long> gotTasks = tasks.stream().map(Task::getId).collect(Collectors.toSet());
+            taskIds.removeAll(gotTasks);
+            throw new EntityNotFoundException(getNotFoundAddingTasks(taskIds));
         }
     }
 
     private void checkTasksEventId(long eventId, List<Task> tasks) {
-        List<Long> otherEventTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.getEventId() != eventId) {
-                otherEventTasks.add(task.getId());
-            }
-        }
+        Set<Long> otherEventTasks = taskRepository.findTaskIdByIdInAndEventIdNot(tasks, eventId);
         if (!otherEventTasks.isEmpty()) {
             throw new ConflictException(getConflictAddTasks(otherEventTasks, eventId));
         }

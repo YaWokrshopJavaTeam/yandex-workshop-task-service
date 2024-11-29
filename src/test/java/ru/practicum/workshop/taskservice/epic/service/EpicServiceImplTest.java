@@ -21,7 +21,6 @@ import ru.practicum.workshop.taskservice.tasks.model.Task;
 import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -180,7 +179,7 @@ public class EpicServiceImplTest {
         long ownerId = epic.getOwnerId();
         long eventId = epic.getEventId();
         long notExistingTaskId = Long.MAX_VALUE;
-        List<Long> notFoundTasks = new ArrayList<>(List.of(notExistingTaskId));
+        Set<Long> notFoundTasks = new HashSet<>(List.of(notExistingTaskId));
 
         Task task1 = createTask(eventId);
 
@@ -220,7 +219,7 @@ public class EpicServiceImplTest {
 
         Task task1 = createTask(eventId);
         Task task2 = createTask(epic.getEventId());
-        List<Long> otherEventTasks = new ArrayList<>(List.of(task1.getId()));
+        Set<Long> otherEventTasks = new HashSet<>(List.of(task1.getId()));
 
         final Exception exception = assertThrows(ConflictException.class, () -> {
             epicService.addTasks(epic.getId(), ownerId, new HashSet<>(Set.of(task1.getId(), task2.getId())));

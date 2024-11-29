@@ -8,6 +8,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.workshop.taskservice.tasks.model.Task;
 
+import java.util.List;
+import java.util.Set;
+
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
@@ -18,4 +21,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Page<Task> findByParameters(@Param("eventId") Long eventId,
                                 @Param("assigneeId") Long assigneeId,
                                 @Param("authorId") Long authorId, Pageable pageable);
+
+    @Query("SELECT DISTINCT t.id FROM Task AS t WHERE t.eventId <> :eventId AND t IN :tasks")
+    Set<Long> findTaskIdByIdInAndEventIdNot(@Param("tasks") List<Task> tasks,
+                                            @Param("eventId") Long eventId);
 }
