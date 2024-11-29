@@ -6291,68 +6291,62 @@
 		},
 		{
 			"key": "requestBody",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "taskId",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "taskId2",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "epicId",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "authorId",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "ownerId",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "response",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "eventId",
 			"value": "1",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "taskCount",
 			"value": "0",
-			"type": "string"
+			"type": "number"
 		},
 		{
 			"key": "savedEpic",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "taskIds",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "savedTask",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "savedTask2",
-			"value": "",
-			"type": "string"
+			"value": ""
 		}
 	]
 }
