@@ -7,16 +7,20 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.workshop.taskservice.epic.controller.EpicController;
+import ru.practicum.workshop.taskservice.tasks.controllers.TaskController;
 
 import java.util.NoSuchElementException;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = {TaskController.class, EpicController.class})
 public class ErrorHandler {
 
     @ExceptionHandler
@@ -26,18 +30,20 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-
-
-    @ExceptionHandler
+    @ExceptionHandler({MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingRequestHeaderException.class,
+            jakarta.validation.ConstraintViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
+    public ErrorResponse handleValidationExceptions(final Exception e) {
         log.info(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({DataIntegrityViolationException.class,
+            ConflictException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+    public ErrorResponse handleDataIntegrityViolationException(final Exception e) {
         log.info(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
@@ -73,6 +79,13 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleConstraintViolationException(final ConstraintViolationException e) {
+        log.info(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbiddenException(final ForbiddenException e) {
         log.info(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
