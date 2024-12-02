@@ -31,7 +31,7 @@ import static ru.practicum.workshop.taskservice.util.ErrorMessageConstants.*;
 @ActiveProfiles("test")
 @Transactional
 @SpringBootTest
-@RequiredArgsConstructor(onConstructor_= @Autowired)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class EpicServiceImplTest {
     private final EpicService epicService;
     private final EpicMapper epicMapper;

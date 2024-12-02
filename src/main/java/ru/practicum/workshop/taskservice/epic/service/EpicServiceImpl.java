@@ -34,7 +34,7 @@ public class EpicServiceImpl implements EpicService {
 
     private Epic findEpicInDb(long epicId) {
         return epicRepository.findById(epicId).orElseThrow(
-                ()-> new EntityNotFoundException(getNotFoundEpic(epicId)));
+                () -> new EntityNotFoundException(getNotFoundEpic(epicId)));
     }
 
     @Override
