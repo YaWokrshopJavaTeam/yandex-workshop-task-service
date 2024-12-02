@@ -5,7 +5,7 @@ public final class EpicDtoValidationConstants {
     public static final int NAME_MIN_SIZE = 1;
     public static final int NAME_MAX_SIZE = 250;
     public static final String NAME_SIZE_ERROR_MESSAGE = "Epic's name shouldn't be less then "
-            + NAME_MIN_SIZE + " and more than "+ NAME_MAX_SIZE + " characters";
+            + NAME_MIN_SIZE + " and more than " + NAME_MAX_SIZE + " characters";
 
     public static final String OWNER_ID_NOT_NULL_ERROR_MESSAGE = "Owner's id shouldn't be null";
     public static final String OWNER_ID_POSITIVE_ERROR_MESSAGE = "Owner's id should be positive";

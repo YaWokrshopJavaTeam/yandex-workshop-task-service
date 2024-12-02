@@ -32,7 +32,7 @@ import static ru.practicum.workshop.taskservice.util.EpicControllerValidationCon
 import static ru.practicum.workshop.taskservice.util.EpicDtoValidationConstants.*;
 
 @WebMvcTest(controllers = EpicController.class)
-@RequiredArgsConstructor(onConstructor_= @Autowired)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class EpicControllerTest {
     private final MockMvc mvc;
     private final ObjectMapper mapper;
