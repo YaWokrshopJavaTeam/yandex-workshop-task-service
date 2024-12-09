@@ -1,17 +1,13 @@
 package ru.practicum.workshop.taskservice.tasks.mappers;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import ru.practicum.workshop.taskservice.tasks.dto.FullTaskDto;
 import ru.practicum.workshop.taskservice.tasks.dto.NewTaskDto;
 import ru.practicum.workshop.taskservice.tasks.dto.UpdateTaskDto;
 import ru.practicum.workshop.taskservice.tasks.enums.TaskStatus;
 import ru.practicum.workshop.taskservice.tasks.model.Task;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TaskMapper {
 
     FullTaskDto toFullTaskDto(Task task);
