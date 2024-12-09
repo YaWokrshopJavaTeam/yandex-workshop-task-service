@@ -5,7 +5,7 @@ services:
     image: task-service
     container_name: task-service
     ports:
-      - "9090:9090"
+      - "8083:9090"
     depends_on:
       - task-service-db
     environment:
