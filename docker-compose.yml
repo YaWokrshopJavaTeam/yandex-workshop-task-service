@@ -1,7 +1,7 @@
 services:
   task-service:
     build: ./
-    image: task-service
+    image: ya-workshop-task-service
     container_name: task-service
     ports:
       - "8083:9090"
