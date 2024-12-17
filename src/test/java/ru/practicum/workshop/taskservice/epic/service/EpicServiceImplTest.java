@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.workshop.taskservice.epic.dto.EpicDto;
@@ -19,13 +20,18 @@ import ru.practicum.workshop.taskservice.exceptions.ForbiddenException;
 import ru.practicum.workshop.taskservice.tasks.enums.TaskStatus;
 import ru.practicum.workshop.taskservice.tasks.model.Task;
 import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
+import ru.practicum.workshop.taskservice.util.service.ExternalEntityService;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static ru.practicum.workshop.taskservice.util.ErrorMessageConstants.*;
 
 @ActiveProfiles("test")
@@ -33,6 +39,10 @@ import static ru.practicum.workshop.taskservice.util.ErrorMessageConstants.*;
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class EpicServiceImplTest {
+
+    @MockBean
+    private final ExternalEntityService externalEntityService;
+
     private final EpicService epicService;
     private final EpicMapper epicMapper;
     private final EpicRepository epicRepository;
@@ -311,5 +321,54 @@ public class EpicServiceImplTest {
         });
         final String actualMessage = exception.getMessage();
         assertEquals(actualMessage, FORBIDDEN_DELETE_EPIC_MESSAGE);
+    }
+
+    @DisplayName("Ошибка Not found при создании эпика, если владелец не существует")
+    @Test
+    void shouldThrow_NotFound_WhenOwnerNotExist() {
+        NewEpicDto newEpicDto = new NewEpicDto("name", id++, id, LocalDateTime.now().plusDays(1));
+
+        doThrow(new EntityNotFoundException("User not found."))
+                .when(externalEntityService).checkUserExistence(any(Long.class));
+
+        assertThrows(EntityNotFoundException.class, () -> epicService.createEpic(newEpicDto));
+    }
+
+    @DisplayName("Ошибка Not found при создании эпика, если события не существует")
+    @Test
+    void shouldThrow_NotFound_WhenEventNotExist() {
+        NewEpicDto newEpicDto = new NewEpicDto("name", id++, id, LocalDateTime.now().plusDays(1));
+
+        doThrow(new EntityNotFoundException("Event not found."))
+                .when(externalEntityService).checkEventTeamAffiliation(any(Long.class), any(Collection.class));
+
+        assertThrows(EntityNotFoundException.class, () -> epicService.createEpic(newEpicDto));
+    }
+
+    @DisplayName("Ошибка Conflict при создании эпика, если владелец не владеет событием.")
+    @Test
+    void shouldThrow_NotFound_WhenUserIsNotEventOwner() {
+        NewEpicDto newEpicDto = new NewEpicDto("name", id++, id, LocalDateTime.now().plusDays(1));
+
+        doThrow(new ConflictException("User is not event owner"))
+                .when(externalEntityService).checkEventTeamAffiliation(any(Long.class), any(Collection.class));
+
+        assertThrows(ConflictException.class, () -> epicService.createEpic(newEpicDto));
+    }
+
+    @DisplayName("Ошибка Conflict при обновлении эпика, если новый владелец не владеет событием.")
+    @Test
+    void shouldThrow_NotFound_WhenUpdatedUserIsNotEventOwner() {
+        NewEpicDto newEpicDto = new NewEpicDto("name", id++, id, LocalDateTime.now().plusDays(1));
+        EpicDto epicDto = epicService.createEpic(newEpicDto);
+
+        Long newEpicOwnerId = epicDto.getOwnerId() + 1;
+        UpdateEpicDto updatingDto = new UpdateEpicDto("other name", newEpicOwnerId, LocalDateTime.now().plusMonths(1));
+
+        doThrow(new ConflictException("User is not event owner"))
+                .when(externalEntityService).checkEventTeamAffiliation(eq(epicDto.getEventId()), any(Collection.class));
+
+        assertThrows(ConflictException.class, () ->
+                epicService.updateEpic(epicDto.getId(), epicDto.getOwnerId(), updatingDto));
     }
 }

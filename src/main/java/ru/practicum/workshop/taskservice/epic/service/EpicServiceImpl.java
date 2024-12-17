@@ -15,6 +15,7 @@ import ru.practicum.workshop.taskservice.exceptions.ConflictException;
 import ru.practicum.workshop.taskservice.exceptions.ForbiddenException;
 import ru.practicum.workshop.taskservice.tasks.model.Task;
 import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
+import ru.practicum.workshop.taskservice.util.service.ExternalEntityService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,8 @@ import static ru.practicum.workshop.taskservice.util.ErrorMessageConstants.*;
 @Transactional
 @RequiredArgsConstructor
 public class EpicServiceImpl implements EpicService {
+
+    private final ExternalEntityService externalEntityService;
     private final EpicMapper epicMapper;
     private final EpicRepository epicRepository;
     private final TaskRepository taskRepository;
@@ -39,6 +42,10 @@ public class EpicServiceImpl implements EpicService {
 
     @Override
     public EpicDto createEpic(NewEpicDto dto) {
+        externalEntityService.checkUserExistence(dto.getOwnerId());
+
+        externalEntityService.checkEventTeamAffiliation(dto.getEventId(), new HashSet<>(List.of(dto.getOwnerId())));
+
         Epic newEpic = epicRepository.save(epicMapper.toEntity(dto));
         return epicMapper.toDto(newEpic);
     }
@@ -46,10 +53,16 @@ public class EpicServiceImpl implements EpicService {
     @Override
     public EpicDto updateEpic(long epicId, long ownerId, UpdateEpicDto dto) {
         Epic updatingEpic = findEpicInDb(epicId);
-        if (updatingEpic.getOwnerId() == ownerId) {
-            epicMapper.updateEpic(updatingEpic, dto);
-            return epicMapper.toDto(epicRepository.save(updatingEpic));
-        } else throw new ForbiddenException(FORBIDDEN_UPDATE_EPIC_MESSAGE);
+
+        if (updatingEpic.getOwnerId() != ownerId) {
+            throw new ForbiddenException(FORBIDDEN_UPDATE_EPIC_MESSAGE);
+        }
+
+        externalEntityService.checkEventTeamAffiliation(updatingEpic.getEventId(),
+                new HashSet<>(List.of(dto.getOwnerId())));
+
+        epicMapper.updateEpic(updatingEpic, dto);
+        return epicMapper.toDto(epicRepository.save(updatingEpic));
     }
 
     private void checkExistenceTasks(List<Task> tasks, Set<Long> taskIds) {
