@@ -1,6 +1,7 @@
 package ru.practicum.workshop.taskservice.tasks.services;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import ru.practicum.workshop.taskservice.tasks.dto.FullTaskDto;
 import ru.practicum.workshop.taskservice.tasks.dto.NewTaskDto;
@@ -15,16 +16,20 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.workshop.taskservice.tasks.searchparams.PresentationParameters;
 import ru.practicum.workshop.taskservice.tasks.searchparams.SearchParameters;
 import ru.practicum.workshop.taskservice.tasks.services.TaskService;
+import ru.practicum.workshop.taskservice.util.service.ExternalEntityService;
 
 import java.time.LocalDateTime;
 
 @Transactional
 @ActiveProfiles(value = "test")
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class TaskServiceTest {
+
+    @MockBean
+    private final ExternalEntityService externalEntityService;
+
     private final TaskService taskService;
 
     @Test

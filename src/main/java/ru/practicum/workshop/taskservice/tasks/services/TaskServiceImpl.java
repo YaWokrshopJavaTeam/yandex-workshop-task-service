@@ -16,6 +16,7 @@ import ru.practicum.workshop.taskservice.tasks.model.Task;
 import ru.practicum.workshop.taskservice.tasks.repositories.TaskRepository;
 import ru.practicum.workshop.taskservice.tasks.searchparams.PresentationParameters;
 import ru.practicum.workshop.taskservice.tasks.searchparams.SearchParameters;
+import ru.practicum.workshop.taskservice.util.service.ExternalEntityService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,18 +25,37 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class TaskServiceImpl implements TaskService {
+
+    private final ExternalEntityService externalEntityService;
     private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
 
     @Override
     @Transactional
     public FullTaskDto createTask(long authorId, NewTaskDto newTaskDto) {
-        return taskMapper.toFullTaskDto(taskRepository.save(taskMapper.toTask(authorId, TaskStatus.NEW, newTaskDto)));
+        externalEntityService.checkUserExistence(authorId);
+        externalEntityService.checkUserExistence(newTaskDto.getAssigneeId());
+
+        externalEntityService.checkEventTeamAffiliation(newTaskDto.getEventId(),
+                List.of(authorId, newTaskDto.getAssigneeId()));
+
+        Task newTask = taskMapper.toTask(authorId, TaskStatus.NEW, newTaskDto);
+        taskRepository.save(newTask);
+
+        log.info("Added task: {}", newTask);
+
+        return taskMapper.toFullTaskDto(newTask);
     }
 
     @Override
     @Transactional
     public FullTaskDto updateTask(long userId, long taskId, UpdateTaskDto updateTaskDto) {
+        if (updateTaskDto.getAssigneeId() != null) {
+            externalEntityService.checkUserExistence(updateTaskDto.getAssigneeId());
+            externalEntityService.checkEventTeamAffiliation(updateTaskDto.getEventId(),
+                    List.of(userId, updateTaskDto.getAssigneeId()));
+        }
+
         Task updatingTask = taskRepository.getReferenceById(taskId);
         if (updatingTask.getAuthorId() != userId && updatingTask.getAssigneeId() != userId) {
             throw new IllegalArgumentException("Обновлять задачу могут только автор или исполнитель");
@@ -85,4 +105,6 @@ public class TaskServiceImpl implements TaskService {
         }
         taskRepository.delete(task);
     }
+
+
 }
