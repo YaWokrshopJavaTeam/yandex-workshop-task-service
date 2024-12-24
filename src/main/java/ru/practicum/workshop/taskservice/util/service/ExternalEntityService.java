@@ -29,7 +29,7 @@ public class ExternalEntityService {
 
     public void checkEventExistence(Long eventId) throws EntityNotFoundException {
         try {
-            eventServiceClient.getEvent(1L, eventId);
+            eventServiceClient.getEvent(eventId);
         } catch (FeignException.NotFound e) {
             throw new EntityNotFoundException(String.format("Event with id=%d not found.", eventId));
         }
@@ -39,7 +39,7 @@ public class ExternalEntityService {
         Long eventOwnerId = null;
 
         try {
-            eventOwnerId = eventServiceClient.getEvent(1L, eventId).getOwnerId();
+            eventOwnerId = eventServiceClient.getEvent(eventId).getOwnerId();
         } catch (FeignException.NotFound e) {
             throw new EntityNotFoundException(String.format("Event with id=%d not found.", eventId));
         }
